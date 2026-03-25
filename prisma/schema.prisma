@@ -1,0 +1,74 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id        String   @id @default(cuid())
+  email     String   @unique
+  password  String
+  role      String   @default("ADMIN")
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id          String    @id @default(cuid())
+  name        String
+  slug        String    @unique
+  logoUrl     String?
+  products    Product[]
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+}
+
+model Product {
+  id            String   @id @default(cuid())
+  categoryId    String
+  category      Category @relation(fields: [categoryId], references: [id])
+  skuCode       String   @unique // Digiflazz SKU
+  name          String
+  basicPrice    Float    // Modal dari Digiflazz
+  sellPrice     Float    // Harga jual ke pelanggan
+  maxPrice      Float    // Hard Guard (Batas aman)
+  status        String   @default("active") // active, inactive
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+  orders        Order[]
+}
+
+model Order {
+  id            String   @id @default(cuid())
+  referenceId   String   @unique // Order ID internal
+  userGameId    String   // ID Game tujuan (misal ID MLBB)
+  zoneId        String?  // Server/Zone ID (opsional)
+  productId     String
+  product       Product  @relation(fields: [productId], references: [id])
+  paymentStatus String   @default("PENDING") // PENDING, SUCCESS, FAILED
+  digiflazzStatus String @default("PENDING") // PENDING, PROCESSING, SUCCESS, FAILED
+  amount        Float
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+}
+
+model Settings {
+  id              String   @id @default(cuid())
+  key             String   @unique
+  value           String
+  description     String?
+}
+
+model ErrorLog {
+  id          String   @id @default(cuid())
+  service     String   // Digiflazz, Sukurupiah, System
+  message     String
+  responseBody String? @db.Text
+  createdAt   DateTime @default(now())
+}
