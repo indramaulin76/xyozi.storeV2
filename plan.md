@@ -20,15 +20,10 @@
 - **Global Search**: Quick find for any game or service.
 
 ### 2. Product Order Page (Specific Game)
-- **Input Field**: User ID & Zone ID (with validation logic for specific games).
-- **Nominal Grid**: List of products (Diamonds, UC, etc.) with real-time price labels.
-- **Payment Selection**: Accordion of payment methods (E-Wallet, Virtual Accounts via Sukurupiah).
-- **Checkout Summary**: Sticky sidebar showing selected items and total price.
+- **Input Field**: User ID & Zone ID (with validation logic for specific ga
 
-### 3. Payment & Invoice Page
-- **Invoice Overview**: Status (Pending/Success/Failed), Expiry timer.
-- **Payment Details**: QR Code (QRIS) or Virtual Account number display.
-- **Order Status**: Real-time polling or WebSocket updates when payment is successful.
+
+uccessful.
 
 ### 4. Admin Dashboard UI
 - **Dashboard Overview**: Total revenue, total orders, and success rate charts.
