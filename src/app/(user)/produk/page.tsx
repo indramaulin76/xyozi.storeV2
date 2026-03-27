@@ -1,11 +1,14 @@
 import { Search, Gamepad2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import GameGrid from "@/components/home/GameGrid";
+import { getCategories } from "@/lib/actions/category";
 
-export default function ProdukPage() {
+export default async function ProdukPage() {
+  const categories = await getCategories();
+
   return (
     <div className="min-h-screen bg-slate-950 pb-20 pt-8">
-      <div className="container mx-auto px-4">
+      <div className="container mx-auto px-6 md:px-10 lg:px-12">
         {/* Header Section */}
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-8 mb-12 flex flex-col md:flex-row items-center justify-between gap-6 shadow-xl">
           <div>
@@ -33,7 +36,7 @@ export default function ProdukPage() {
           
           {/* We will reuse GameGrid component here since it already has the tabs and games */}
           <div className="-mt-12">
-            <GameGrid />
+            <GameGrid categories={categories} />
           </div>
         </div>
       </div>

@@ -12,8 +12,8 @@ export default function TransaksiPage() {
     <div className="min-h-screen bg-slate-950 pb-20 pt-8">
       <div className="container mx-auto px-4 max-w-3xl">
         <div className="text-center space-y-4 mb-12">
-          <div className="w-16 h-16 bg-blue-600/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <History className="w-8 h-8 text-blue-500" />
+          <div className="w-16 h-16 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <History className="w-8 h-8 text-yellow-500" />
           </div>
           <h1 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter">
             Cek Transaksi
@@ -33,12 +33,12 @@ export default function TransaksiPage() {
                   value={invoice}
                   onChange={(e) => setInvoice(e.target.value)}
                   placeholder="Contoh: INV-20260325-12345"
-                  className="bg-slate-950 border-slate-800 h-16 rounded-2xl text-white pl-14 text-base focus:ring-blue-500"
+                  className="bg-slate-950 border-slate-800 h-16 rounded-2xl text-white pl-14 text-base focus:ring-yellow-500"
                 />
               </div>
             </div>
 
-            <button className="w-full bg-blue-600 hover:bg-blue-700 text-white font-black py-4 rounded-2xl transition-all shadow-xl shadow-blue-600/20 active:scale-95 flex items-center justify-center gap-2 uppercase tracking-widest text-sm">
+            <button className="w-full bg-yellow-500 hover:bg-yellow-400 text-black font-black py-4 rounded-2xl transition-all shadow-xl shadow-yellow-500/30 active:scale-95 flex items-center justify-center gap-2 uppercase tracking-widest text-sm">
               <Search className="w-5 h-5" />
               Lacak Pesanan
             </button>

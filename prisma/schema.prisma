@@ -28,6 +28,9 @@ model Category {
   description   String?   @db.Text
   markupPercent Float     @default(10)
   menuSection   String    @default("topup") // topup, voucher, pulsa, token, data
+  field1Label   String    @default("User ID") // Label untuk input utama (contoh: "User ID", "Riot ID", "Nomor HP")
+  field2Label   String?   // Label untuk input opsional (contoh: "Zone ID", "Tagline"). Jika null, tidak tampilkan input kedua.
+  digiflazzBrand String?  // Brand name persis dari Digiflazz (e.g., "Mobile Legends", "Free Fire")
   products      Product[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
@@ -43,6 +46,11 @@ model Product {
   sellPrice     Float    // Harga jual ke pelanggan
   maxPrice      Float    // Hard Guard (Batas aman)
   status        String   @default("active") // active, inactive
+  imageUrl      String?  // URL gambar produk (local: /uploads/xxx.png)
+  isFlashSale   Boolean  @default(false) // Tampilkan di flash sale
+  flashSalePrice Float?  // Harga khusus flash sale
+  isPopular     Boolean  @default(false) // Tampilkan di produk populer
+  orderCount    Int      @default(0) // Jumlah transaksi (untuk populer)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
   orders        Order[]

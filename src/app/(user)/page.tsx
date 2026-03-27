@@ -1,15 +1,25 @@
 import Hero from "@/components/home/Hero";
 import FlashSale from "@/components/home/FlashSale";
+import PopularProducts from "@/components/home/PopularProducts";
 import GameGrid from "@/components/home/GameGrid";
 import { getCategories } from "@/lib/actions/category";
+import { getFlashSaleProducts } from "@/lib/actions/product";
+import { getFlashSaleSettings } from "@/lib/actions/settings";
+import { getPopularProducts } from "@/lib/actions/product";
 
 export default async function Home() {
-  const categories = await getCategories();
+  const [categories, flashSaleProducts, flashSaleSettings, popularProducts] = await Promise.all([
+    getCategories(),
+    getFlashSaleProducts(),
+    getFlashSaleSettings(),
+    getPopularProducts(8)
+  ]);
 
   return (
     <div className="pb-20">
       <Hero />
-      <FlashSale />
+      <FlashSale products={flashSaleProducts} endTime={flashSaleSettings.endTime} />
+      <PopularProducts initialProducts={popularProducts} />
       <GameGrid categories={categories} />
     </div>
   );

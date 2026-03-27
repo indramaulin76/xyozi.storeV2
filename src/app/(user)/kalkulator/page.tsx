@@ -11,8 +11,8 @@ export default function KalkulatorPage() {
     <div className="min-h-screen bg-slate-950 pb-20 pt-8">
       <div className="container mx-auto px-4 max-w-4xl">
         <div className="text-center space-y-4 mb-12">
-          <div className="w-16 h-16 bg-blue-600/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <Calculator className="w-8 h-8 text-blue-500" />
+          <div className="w-16 h-16 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <Calculator className="w-8 h-8 text-yellow-500" />
           </div>
           <h1 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter">
             Kalkulator Game
@@ -24,10 +24,10 @@ export default function KalkulatorPage() {
 
         <Tabs defaultValue="magic-wheel" className="w-full">
           <TabsList className="flex w-full bg-slate-900 border border-slate-800 p-1 mb-8 rounded-xl">
-            <TabsTrigger value="magic-wheel" className="flex-1 py-3 text-xs md:text-sm font-bold uppercase tracking-wider data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger value="magic-wheel" className="flex-1 py-3 text-xs md:text-sm font-bold uppercase tracking-wider data-[state=active]:bg-yellow-500 data-[state=active]:text-black">
               Magic Wheel
             </TabsTrigger>
-            <TabsTrigger value="zodiac" className="flex-1 py-3 text-xs md:text-sm font-bold uppercase tracking-wider data-[state=active]:bg-blue-600 data-[state=active]:text-white">
+            <TabsTrigger value="zodiac" className="flex-1 py-3 text-xs md:text-sm font-bold uppercase tracking-wider data-[state=active]:bg-yellow-500 data-[state=active]:text-black">
               Zodiac Summon
             </TabsTrigger>
           </TabsList>
@@ -91,7 +91,7 @@ function CalculatorCard({
               value={currentPoints}
               onChange={(e) => setCurrentPoints(e.target.value)}
               placeholder={`Contoh: 120 (Max ${maxPoint})`}
-              className="bg-slate-950 border-slate-800 h-14 rounded-2xl text-white text-lg px-4 focus:ring-blue-500"
+              className="bg-slate-950 border-slate-800 h-14 rounded-2xl text-white text-lg px-4 focus:ring-yellow-500"
             />
           </div>
 
@@ -104,7 +104,7 @@ function CalculatorCard({
               <span className="text-sm font-bold text-slate-400 uppercase">Estimasi Diamond</span>
               <div className="flex items-center gap-2">
                 <img src="https://cdn1.codashop.com/S/content/common/images/mno/mlbb_gem.png" className="w-5 h-5" alt="diamond" />
-                <span className="text-2xl md:text-3xl font-black text-blue-500">{diamondNeeded.toLocaleString('id-ID')}</span>
+                <span className="text-2xl md:text-3xl font-black text-yellow-500">{diamondNeeded.toLocaleString('id-ID')}</span>
               </div>
             </div>
           </div>

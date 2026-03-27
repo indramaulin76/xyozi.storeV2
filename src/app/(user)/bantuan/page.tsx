@@ -27,8 +27,8 @@ export default function BantuanPage() {
     <div className="min-h-screen bg-slate-950 pb-20 pt-8">
       <div className="container mx-auto px-4 max-w-4xl">
         <div className="text-center space-y-4 mb-12">
-          <div className="w-16 h-16 bg-blue-600/10 rounded-full flex items-center justify-center mx-auto mb-6">
-            <LifeBuoy className="w-8 h-8 text-blue-500" />
+          <div className="w-16 h-16 bg-yellow-500/10 rounded-full flex items-center justify-center mx-auto mb-6">
+            <LifeBuoy className="w-8 h-8 text-yellow-500" />
           </div>
           <h1 className="text-3xl md:text-4xl font-black text-white uppercase tracking-tighter">
             Pusat Bantuan
@@ -46,10 +46,10 @@ export default function BantuanPage() {
 
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl">
           <h2 className="text-xl font-bold text-white mb-6 uppercase">Tanya Jawab (FAQ)</h2>
-          <Accordion type="single" collapsible className="w-full">
+          <Accordion className="w-full">
             {FAQS.map((faq, index) => (
               <AccordionItem key={index} value={`item-${index}`} className="border-slate-800">
-                <AccordionTrigger className="text-left font-bold text-slate-200 hover:text-blue-400">{faq.question}</AccordionTrigger>
+                <AccordionTrigger className="text-left font-bold text-slate-200 hover:text-yellow-400">{faq.question}</AccordionTrigger>
                 <AccordionContent className="text-slate-400 leading-relaxed">
                   {faq.answer}
                 </AccordionContent>
@@ -65,7 +65,7 @@ export default function BantuanPage() {
 function ContactCard({ icon, title, value, link }: { icon: React.ReactNode, title: string, value: string, link: string }) {
   return (
     <a href={link} target="_blank" rel="noopener noreferrer" className="block outline-none">
-      <Card className="bg-slate-900 border-slate-800 rounded-2xl hover:border-blue-500 transition-all shadow-xl hover:-translate-y-1">
+      <Card className="bg-slate-900 border-slate-800 rounded-2xl hover:border-yellow-500 transition-all shadow-xl hover:-translate-y-1">
         <CardContent className="p-6 flex flex-col items-center text-center space-y-3">
           <div className="bg-slate-950 p-3 rounded-full border border-slate-800">
             {icon}

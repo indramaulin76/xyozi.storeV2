@@ -12,7 +12,9 @@ import {
   LogOut,
   ChevronRight,
   TrendingUp,
-  AlertCircle
+  AlertCircle,
+  Zap,
+  Star
 } from "lucide-react";
 import { signOut } from "next-auth/react";
 
@@ -28,6 +30,8 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: "Dashboard", href: "/admin", icon: <LayoutDashboard size={20} /> },
     { name: "Kategori", href: "/admin/kategori", icon: <Layers size={20} /> },
     { name: "Produk", href: "/admin/produk", icon: <ShoppingBasket size={20} /> },
+    { name: "Flash Sale", href: "/admin/flash-sale", icon: <Zap size={20} /> },
+    { name: "Produk Populer", href: "/admin/produk-populer", icon: <Star size={20} /> },
     { name: "Pesanan", href: "/admin/pesanan", icon: <ClipboardList size={20} /> },
     { name: "Error Log", href: "/admin/logs", icon: <AlertCircle size={20} /> },
     { name: "Pengaturan", href: "/admin/pengaturan", icon: <Settings size={20} /> },
@@ -39,7 +43,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <aside className="w-64 border-r border-slate-800 bg-[#020617] hidden md:flex flex-col sticky top-0 h-screen shadow-2xl">
         <div className="p-6">
           <Link href="/admin" className="text-xl font-black tracking-tighter text-white">
-            XYOZI<span className="text-blue-500">ADMIN</span>
+            XYOZI<span className="text-yellow-500">ADMIN</span>
           </Link>
         </div>
 
@@ -52,7 +56,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
                 href={item.href}
                 className={`flex items-center justify-between px-4 py-3 rounded-xl transition-all group ${
                   isActive 
-                  ? 'bg-blue-600 text-white shadow-lg shadow-blue-600/20' 
+                  ? 'bg-yellow-500 text-black shadow-lg shadow-yellow-500/20' 
                   : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'
                 }`}
               >

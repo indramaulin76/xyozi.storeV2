@@ -1,7 +1,7 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
-import { Plus, Search, RefreshCw, Filter, Loader2, Save, Trash2 } from "lucide-react";
+import React, { useState, useEffect, useMemo } from "react";
+import { Plus, RefreshCw, Filter, Loader2, Save, Trash2, Percent, Image as ImageIcon, X, CheckCircle, XCircle, Search } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -11,18 +11,39 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { getProducts, createProduct, deleteProduct } from "@/lib/actions/product";
+import { getProducts, createProduct, deleteProduct, syncDigiflazzProducts, checkProductInDigiflazz } from "@/lib/actions/product";
 import { getCategories } from "@/lib/actions/category";
+import { ImageUpload } from "@/components/admin/ImageUpload";
+import { formatRupiah } from "@/lib/utils";
 
 export default function AdminProdukPage() {
   const [open, setOpen] = useState(false);
+  const [imageDialogOpen, setImageDialogOpen] = useState(false);
+  const [selectedProduct, setSelectedProduct] = useState<any>(null);
   const [loading, setLoading] = useState(false);
+  const [syncing, setSyncing] = useState(false);
   const [fetching, setFetching] = useState(true);
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+
+  // SKU Validation State
+  const [skuValidation, setSkuValidation] = useState<{ status: 'idle' | 'checking' | 'valid' | 'invalid'; product?: any }>({ status: 'idle' });
+  const [checkingSku, setCheckingSku] = useState(false);
+
+  // Filter State
+  const [filterCategory, setFilterCategory] = useState("");
+
+  // Filtered Products
+  const filteredProducts = useMemo(() => {
+    return products.filter((product) => {
+      const matchesCategory = filterCategory === "" || 
+        product.categoryId === filterCategory;
+      
+      return matchesCategory;
+    });
+  }, [products, filterCategory]);
 
   // Form State
   const [formData, setFormData] = useState({
@@ -49,10 +70,85 @@ export default function AdminProdukPage() {
     fetchData();
   }, []);
 
+  // Reset SKU validation when SKU changes
+  useEffect(() => {
+    if (formData.skuCode.length < 3) {
+      setSkuValidation({ status: 'idle' });
+    }
+  }, [formData.skuCode]);
+
+  const handleCheckSku = async () => {
+    if (!formData.skuCode || formData.skuCode.length < 3) {
+      alert("SKU Code minimal 3 karakter!");
+      return;
+    }
+
+    setCheckingSku(true);
+    setSkuValidation({ status: 'checking' });
+    
+    try {
+      const result = await checkProductInDigiflazz(formData.skuCode);
+      
+      setCheckingSku(false);
+      
+      if (result.success && result.exists && result.product) {
+        setSkuValidation({ status: 'valid', product: result.product });
+        // Auto-fill form with digiflazz data
+        setFormData(prev => ({
+          ...prev,
+          name: result.product!.name,
+          basicPrice: result.product!.price,
+          sellPrice: Math.ceil(result.product!.price * 1.1), // Default markup 10%
+          maxPrice: result.product!.price * 1.5
+        }));
+      } else {
+        setSkuValidation({ status: 'invalid' });
+      }
+    } catch (error) {
+      setCheckingSku(false);
+      setSkuValidation({ status: 'invalid' });
+    }
+  };
+
+  const handleSync = async () => {
+    if (!confirm("Apakah Anda yakin ingin sinkronisasi produk dari Digiflazz? Ini akan memakan waktu beberapa saat.")) return;
+    
+    setSyncing(true);
+    const result = await syncDigiflazzProducts();
+    setSyncing(false);
+
+    if (result.success) {
+      alert(result.message);
+      fetchData();
+    } else {
+      alert(result.error);
+    }
+  };
+
+  const handleOpenAdd = () => {
+    setFormData({
+      categoryId: "",
+      skuCode: "",
+      name: "",
+      basicPrice: 0,
+      sellPrice: 0,
+      maxPrice: 0,
+    });
+    setSkuValidation({ status: 'idle' });
+    setOpen(true);
+  };
+
   const handleAddProduct = async (e: React.FormEvent) => {
     e.preventDefault();
+    
     if (!formData.categoryId || !formData.skuCode || !formData.name) {
       alert("Harap isi semua kolom wajib!");
+      return;
+    }
+
+    // Validasi SKU harus ada di Digiflazz
+    if (skuValidation.status !== 'valid') {
+      alert("Harap validasi SKU Code terlebih dahulu dengan mengeklik tombol Cek!");
       return;
     }
 
@@ -83,6 +179,11 @@ export default function AdminProdukPage() {
     }
   };
 
+  const handleOpenImageUpload = (product: any) => {
+    setSelectedProduct(product);
+    setImageDialogOpen(true);
+  };
+
   return (
     <div className="space-y-8">
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
@@ -91,106 +192,204 @@ export default function AdminProdukPage() {
           <p className="text-sm text-slate-400 mt-1">Daftar layanan top up yang tersedia di toko Anda.</p>
         </div>
         <div className="flex gap-3">
-          <button className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all">
-            <RefreshCw size={16} /> Sync Digiflazz
+          <button 
+            onClick={handleSync}
+            disabled={syncing}
+            className="bg-slate-800 hover:bg-slate-700 text-white px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          >
+            {syncing ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />} 
+            {syncing ? "Syncing..." : "Sync Digiflazz"}
           </button>
 
           {/* ADD PRODUCT DIALOG */}
-          <Dialog open={open} onOpenChange={setOpen}>
-            <DialogTrigger
-              render={
-                <button
-                  type="button"
-                  className="cursor-pointer bg-blue-600 hover:bg-blue-700 text-white px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-blue-600/20 transition-all active:scale-95 border-none outline-none"
-                >
-                  <Plus size={18} /> Tambah Manual
-                </button>
-              }
-            />
-            <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-2xl rounded-3xl">
-              <DialogHeader>
-                <DialogTitle className="text-xl font-black uppercase tracking-tight">Tambah Produk Baru</DialogTitle>
-                <DialogDescription className="text-slate-400"> Masukkan detail produk layanan secara manual di sini. </DialogDescription>
+          <Dialog open={open} onOpenChange={(isOpen) => {
+            if (!isOpen) {
+              setFormData({
+                categoryId: "",
+                skuCode: "",
+                name: "",
+                basicPrice: 0,
+                sellPrice: 0,
+                maxPrice: 0,
+              });
+              setSkuValidation({ status: 'idle' });
+            }
+            setOpen(isOpen);
+          }}>
+            <button
+              type="button"
+              onClick={handleOpenAdd}
+              className="cursor-pointer bg-yellow-500 hover:bg-yellow-400 text-black px-6 py-2.5 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-yellow-500/30 transition-all active:scale-95 border-none outline-none"
+            >
+              <Plus size={18} /> Tambah Manual
+            </button>
+            <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-4xl rounded-3xl overflow-y-auto max-h-[90vh]">
+              <DialogHeader className="pb-4 border-b border-slate-800/50">
+                <DialogTitle className="text-2xl font-black uppercase tracking-tight">Tambah Produk Layanan</DialogTitle>
+                <DialogDescription className="text-slate-400 font-medium"> Masukkan detail produk secara manual atau gunakan Sync Digiflazz untuk otomatis. </DialogDescription>
               </DialogHeader>
               
-              <form onSubmit={handleAddProduct} className="space-y-6 py-4">
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                  <div className="space-y-2">
-                    <Label htmlFor="category" className="text-xs font-bold uppercase text-slate-500 ml-1">Kategori Game</Label>
-                    <select 
-                      id="category" 
-                      value={formData.categoryId}
-                      onChange={(e) => setFormData({...formData, categoryId: e.target.value})}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl h-12 px-4 text-sm outline-none focus:ring-2 focus:ring-blue-600 transition-all text-white"
-                    >
-                      <option value="">Pilih Kategori</option>
-                      {categories.map((cat) => (
-                        <option key={cat.id} value={cat.id}>{cat.name}</option>
-                      ))}
-                    </select>
+              <form onSubmit={handleAddProduct} className="space-y-8 py-6">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
+                  <div className="space-y-6">
+                    <div className="space-y-2">
+                      <Label htmlFor="category" className="text-xs font-black uppercase text-slate-500 ml-1">Pilih Kategori Game</Label>
+                      <select 
+                        id="category" 
+                        value={formData.categoryId}
+                        onChange={(e) => setFormData({...formData, categoryId: e.target.value})}
+                        className="w-full bg-slate-950 border border-slate-800 rounded-2xl h-14 px-5 text-base outline-none focus:ring-2 focus:ring-yellow-500 transition-all text-white appearance-none"
+                      >
+                        <option value="">Pilih Kategori</option>
+                        {categories.map((cat) => (
+                          <option key={cat.id} value={cat.id}>{cat.name}</option>
+                        ))}
+                      </select>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="name" className="text-xs font-black uppercase text-slate-500 ml-1">Nama Produk (Nominal)</Label>
+                      <Input 
+                        id="name" 
+                        placeholder="Contoh: 86 Diamonds" 
+                        className="bg-slate-950 border-slate-800 h-14 rounded-2xl text-lg font-bold"
+                        value={formData.name}
+                        onChange={(e) => setFormData({...formData, name: e.target.value})}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="sku" className="text-xs font-black uppercase text-slate-500 ml-1">SKU Code (Digiflazz) <span className="text-red-500">*</span></Label>
+                      <div className="flex gap-2">
+                        <div className="flex-1">
+                          <Input 
+                            id="sku" 
+                            placeholder="Contoh: ML86" 
+                            className={`bg-slate-950 h-14 rounded-2xl font-mono ${
+                              skuValidation.status === 'valid' ? 'border-green-500 text-green-400' :
+                              skuValidation.status === 'invalid' ? 'border-red-500 text-red-400' :
+                              'border-slate-800 text-yellow-400'
+                            }`}
+                            value={formData.skuCode}
+                            onChange={(e) => setFormData({...formData, skuCode: e.target.value.toUpperCase()})}
+                          />
+                        </div>
+                        <button
+                          type="button"
+                          onClick={handleCheckSku}
+                          disabled={checkingSku || !formData.skuCode}
+                          className="bg-blue-600 hover:bg-blue-700 disabled:bg-slate-700 disabled:cursor-not-allowed text-white px-4 h-14 rounded-2xl font-bold text-xs uppercase flex items-center gap-2 transition-all"
+                        >
+                          {checkingSku ? (
+                            <Loader2 size={16} className="animate-spin" />
+                          ) : (
+                            <>
+                              <Search size={16} /> Cek
+                            </>
+                          )}
+                        </button>
+                      </div>
+                      
+                      {/* SKU Validation Status */}
+                      {skuValidation.status === 'checking' && (
+                        <div className="flex items-center gap-2 text-blue-400 text-xs mt-2">
+                          <Loader2 size={14} className="animate-spin" />
+                          <span>Mengecek di Digiflazz...</span>
+                        </div>
+                      )}
+                      {skuValidation.status === 'valid' && skuValidation.product && (
+                        <div className="flex items-start gap-2 text-green-400 text-xs mt-2 bg-green-500/10 p-3 rounded-xl border border-green-500/20">
+                          <CheckCircle size={14} className="mt-0.5 flex-shrink-0" />
+                          <div>
+                            <p className="font-bold">Produk ditemukan!</p>
+                            <p className="text-green-300">{skuValidation.product.name}</p>
+                            <p className="text-green-500/70">Harga modal: Rp {skuValidation.product.price.toLocaleString('id-ID')}</p>
+                            <p className="text-green-500/70">Brand: {skuValidation.product.brand}</p>
+                          </div>
+                        </div>
+                      )}
+                      {skuValidation.status === 'invalid' && (
+                        <div className="flex items-center gap-2 text-red-400 text-xs mt-2 bg-red-500/10 p-3 rounded-xl border border-red-500/20">
+                          <XCircle size={14} />
+                          <span>Produk tidak ditemukan di Digiflazz. Pastikan SKU Code benar.</span>
+                        </div>
+                      )}
+                      {skuValidation.status === 'idle' && (
+                        <p className="text-[10px] text-slate-500 mt-2">Klik "Cek" untuk validasi SKU di Digiflazz sebelum menyimpan.</p>
+                      )}
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="sku" className="text-xs font-bold uppercase text-slate-500 ml-1">SKU Code (Digiflazz)</Label>
-                    <Input 
-                      id="sku" 
-                      placeholder="Contoh: ML86" 
-                      className="bg-slate-950 border-slate-800 h-12 rounded-xl"
-                      value={formData.skuCode}
-                      onChange={(e) => setFormData({...formData, skuCode: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2 md:col-span-2">
-                    <Label htmlFor="name" className="text-xs font-bold uppercase text-slate-500 ml-1">Nama Produk</Label>
-                    <Input 
-                      id="name" 
-                      placeholder="Contoh: 86 Diamonds" 
-                      className="bg-slate-950 border-slate-800 h-12 rounded-xl"
-                      value={formData.name}
-                      onChange={(e) => setFormData({...formData, name: e.target.value})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="modal" className="text-xs font-bold uppercase text-slate-500 ml-1">Harga Modal (Rp)</Label>
-                    <Input 
-                      id="modal" 
-                      type="number" 
-                      placeholder="0" 
-                      className="bg-slate-950 border-slate-800 h-12 rounded-xl"
-                      value={formData.basicPrice}
-                      onChange={(e) => setFormData({...formData, basicPrice: Number(e.target.value)})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="jual" className="text-xs font-bold uppercase text-slate-500 ml-1">Harga Jual (Rp)</Label>
-                    <Input 
-                      id="jual" 
-                      type="number" 
-                      placeholder="0" 
-                      className="bg-slate-950 border-slate-800 h-12 rounded-xl"
-                      value={formData.sellPrice}
-                      onChange={(e) => setFormData({...formData, sellPrice: Number(e.target.value)})}
-                    />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="max" className="text-xs font-bold uppercase text-slate-500 ml-1">Harga Max (Safety)</Label>
-                    <Input 
-                      id="max" 
-                      type="number" 
-                      placeholder="0" 
-                      className="bg-slate-950 border-slate-800 h-12 rounded-xl"
-                      value={formData.maxPrice}
-                      onChange={(e) => setFormData({...formData, maxPrice: Number(e.target.value)})}
-                    />
+
+                  <div className="bg-slate-950/50 p-6 rounded-3xl border border-slate-800 space-y-6">
+                    <h4 className="text-xs font-black uppercase text-slate-400 border-b border-slate-800 pb-3 flex items-center gap-2">
+                      <Percent size={14} className="text-yellow-500" /> Pengaturan Harga
+                    </h4>
+                    <div className="space-y-2">
+                      <Label htmlFor="modal" className="text-xs font-black uppercase text-slate-500 ml-1">Harga Modal (Provider)</Label>
+                      <div className="relative">
+                        <Input 
+                          id="modal" 
+                          type="number" 
+                          placeholder="0" 
+                          className="bg-slate-900 border-slate-800 h-14 rounded-2xl text-xl font-bold pl-12"
+                          value={formData.basicPrice}
+                          onChange={(e) => setFormData({...formData, basicPrice: Number(e.target.value)})}
+                        />
+                        <span className="absolute left-5 top-1/2 -translate-y-1/2 font-bold text-slate-600">Rp</span>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="jual" className="text-xs font-black uppercase text-slate-500 ml-1">Harga Jual (Pelanggan)</Label>
+                      <div className="relative">
+                        <Input 
+                          id="jual" 
+                          type="number" 
+                          placeholder="0" 
+                          className="bg-slate-900 border-slate-800 h-14 rounded-2xl text-xl font-black text-yellow-400 pl-12"
+                          value={formData.sellPrice}
+                          onChange={(e) => setFormData({...formData, sellPrice: Number(e.target.value)})}
+                        />
+                        <span className="absolute left-5 top-1/2 -translate-y-1/2 font-bold text-slate-600">Rp</span>
+                      </div>
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="max" className="text-xs font-black uppercase text-slate-500 ml-1">Harga Batas Aman (Safety)</Label>
+                      <div className="relative">
+                        <Input 
+                          id="max" 
+                          type="number" 
+                          placeholder="0" 
+                          className="bg-slate-900 border-slate-800 h-12 rounded-xl pl-12"
+                          value={formData.maxPrice}
+                          onChange={(e) => setFormData({...formData, maxPrice: Number(e.target.value)})}
+                        />
+                        <span className="absolute left-5 top-1/2 -translate-y-1/2 font-bold text-slate-600 text-xs">Rp</span>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
-                <DialogFooter className="pt-4 gap-3">
-                  <button type="button" onClick={() => setOpen(false)} className="bg-slate-800 hover:bg-slate-700 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all">
-                    Batal
-                  </button>
-                  <button type="submit" disabled={loading} className="bg-blue-600 hover:bg-blue-700 text-white px-8 py-3 rounded-xl font-black text-xs uppercase tracking-widest flex items-center gap-2 shadow-lg shadow-blue-600/20 active:scale-95 transition-all">
-                    {loading ? <Loader2 className="w-4 h-4 animate-spin" /> : <Save size={18} />} Simpan Produk
-                  </button>
+                <DialogFooter className="pt-6 gap-4 border-t border-slate-800/50 flex-col sm:flex-row">
+                  <div className="flex-1">
+                    {skuValidation.status !== 'valid' && (
+                      <p className="text-[10px] text-red-400 bg-red-500/10 px-3 py-2 rounded-lg inline-flex items-center gap-2">
+                        <XCircle size={12} />
+                        Validasi SKU diperlukan sebelum menyimpan
+                      </p>
+                    )}
+                    {skuValidation.status === 'valid' && (
+                      <p className="text-[10px] text-green-400 bg-green-500/10 px-3 py-2 rounded-lg inline-flex items-center gap-2">
+                        <CheckCircle size={12} />
+                        SKU valid - siap disimpan
+                      </p>
+                    )}
+                  </div>
+                  <div className="flex gap-4">
+                    <button type="button" onClick={() => setOpen(false)} className="bg-slate-800 hover:bg-slate-700 text-white px-8 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all">
+                      Batal
+                    </button>
+                    <button type="submit" disabled={loading || skuValidation.status !== 'valid'} className="bg-yellow-500 hover:bg-yellow-400 disabled:bg-slate-700 disabled:text-slate-500 text-black px-12 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 shadow-xl shadow-yellow-500/30 active:scale-95 transition-all">
+                      {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save size={20} />} Simpan Produk
+                    </button>
+                  </div>
                 </DialogFooter>
               </form>
             </DialogContent>
@@ -200,25 +399,37 @@ export default function AdminProdukPage() {
 
       <Card className="bg-slate-900 border-slate-800 rounded-3xl overflow-hidden shadow-xl">
         <div className="p-6 border-b border-slate-800 flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div className="relative w-full md:w-80">
-            <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-500 w-4 h-4" />
-            <Input placeholder="Cari SKU atau nama produk..." className="bg-slate-950 border-slate-800 pl-10 h-10 rounded-xl text-sm" />
-          </div>
-          <div className="flex items-center gap-2">
-            <Filter size={16} className="text-slate-500" />
-            <select className="bg-slate-950 border border-slate-800 text-slate-300 text-xs font-bold rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-blue-600">
-              <option>Semua Kategori</option>
+          <div className="flex items-center gap-3">
+            <Filter size={16} className="text-yellow-500" />
+            <select 
+              className="bg-slate-950 border border-slate-800 text-slate-300 text-sm font-bold rounded-xl px-5 py-2.5 outline-none focus:ring-2 focus:ring-yellow-500"
+              value={filterCategory}
+              onChange={(e) => setFilterCategory(e.target.value)}
+            >
+              <option value="">Semua Kategori</option>
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>{cat.name}</option>
               ))}
             </select>
+            {filterCategory && (
+              <button 
+                onClick={() => setFilterCategory("")}
+                className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2 transition-all"
+              >
+                <X size={14} /> Reset
+              </button>
+            )}
           </div>
+          <span className="text-sm text-slate-500">
+            Menampilkan <span className="text-white font-bold">{filteredProducts.length}</span> produk
+          </span>
         </div>
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead className="bg-slate-950/50 text-[10px] font-black uppercase text-slate-500 tracking-[0.2em]">
                 <tr>
+                  <th className="px-6 py-4">Gambar</th>
                   <th className="px-6 py-4">Kategori</th>
                   <th className="px-6 py-4">SKU Code</th>
                   <th className="px-6 py-4">Nama Produk</th>
@@ -231,29 +442,55 @@ export default function AdminProdukPage() {
               <tbody className="divide-y divide-slate-800">
                 {fetching ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-slate-500 italic">
+                    <td colSpan={8} className="px-6 py-12 text-center text-slate-500 italic">
                       <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
                       Memuat data produk...
                     </td>
                   </tr>
-                ) : products.length === 0 ? (
+                ) : filteredProducts.length === 0 ? (
                   <tr>
-                    <td colSpan={7} className="px-6 py-12 text-center text-slate-500 italic">
-                      Belum ada data produk yang tersedia.
+                    <td colSpan={8} className="px-6 py-12 text-center text-slate-500 italic">
+                      {products.length === 0 
+                        ? "Belum ada data produk yang tersedia." 
+                        : "Tidak ada produk yang cocok dengan pencarian."}
                     </td>
                   </tr>
                 ) : (
-                  products.map((product) => (
+                  filteredProducts.map((product) => (
                     <tr key={product.id} className="hover:bg-slate-800/30 transition-colors group">
                       <td className="px-6 py-4">
-                        <span className="bg-slate-800 text-blue-400 text-[10px] font-black px-2 py-1 rounded uppercase tracking-tighter">
+                        <button
+                          onClick={() => handleOpenImageUpload(product)}
+                          className={`
+                            w-12 h-12 rounded-xl overflow-hidden border-2 transition-all
+                            ${product.imageUrl 
+                              ? "border-slate-700 hover:border-yellow-500" 
+                              : "border-dashed border-slate-700 hover:border-yellow-500 bg-slate-800/50"
+                            }
+                          `}
+                        >
+                          {product.imageUrl ? (
+                            <img 
+                              src={product.imageUrl} 
+                              alt={product.name}
+                              className="w-full h-full object-cover"
+                            />
+                          ) : (
+                            <div className="w-full h-full flex items-center justify-center">
+                              <ImageIcon size={20} className="text-slate-600" />
+                            </div>
+                          )}
+                        </button>
+                      </td>
+                      <td className="px-6 py-4">
+                        <span className="bg-slate-800 text-yellow-400 text-[10px] font-black px-2 py-1 rounded uppercase tracking-tighter">
                           {product.category?.name || "N/A"}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-xs font-mono text-slate-400">{product.skuCode}</td>
+                      <td className="px-6 py-4 text-xs font-mono text-yellow-500">{product.skuCode}</td>
                       <td className="px-6 py-4 font-bold text-white text-sm">{product.name}</td>
-                      <td className="px-6 py-4 text-sm text-slate-300">Rp {product.basicPrice.toLocaleString()}</td>
-                      <td className="px-6 py-4 text-sm font-black text-blue-400">Rp {product.sellPrice.toLocaleString()}</td>
+                      <td className="px-6 py-4 text-sm text-slate-300">{formatRupiah(product.basicPrice)}</td>
+                      <td className="px-6 py-4 text-sm font-black text-yellow-400">{formatRupiah(product.sellPrice)}</td>
                       <td className="px-6 py-4">
                         <span className={`text-[10px] font-black px-2 py-1 rounded-lg ${product.status === 'active' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
                           {product.status.toUpperCase()}
@@ -275,6 +512,41 @@ export default function AdminProdukPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* IMAGE UPLOAD DIALOG */}
+      <Dialog open={imageDialogOpen} onOpenChange={setImageDialogOpen}>
+        <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-md rounded-3xl overflow-y-auto max-h-[90vh]">
+          <DialogHeader className="pb-4 border-b border-slate-800/50">
+            <DialogTitle className="text-xl font-black uppercase tracking-tight">Upload Gambar Produk</DialogTitle>
+            <DialogDescription className="text-slate-400 font-medium">
+              Tambahkan gambar untuk produk ini agar lebih menarik di halaman utama.
+            </DialogDescription>
+          </DialogHeader>
+          
+          {selectedProduct && (
+            <div className="py-4">
+              <ImageUpload
+                productId={selectedProduct.id}
+                productName={selectedProduct.name}
+                currentImageUrl={selectedProduct.imageUrl}
+                onUploadSuccess={() => {
+                  fetchData();
+                  setImageDialogOpen(false);
+                }}
+              />
+            </div>
+          )}
+          
+          <DialogFooter className="pt-4 border-t border-slate-800/50">
+            <button 
+              onClick={() => setImageDialogOpen(false)} 
+              className="bg-slate-800 hover:bg-slate-700 text-white px-6 py-3 rounded-xl font-bold text-xs uppercase tracking-widest transition-all"
+            >
+              Tutup
+            </button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
