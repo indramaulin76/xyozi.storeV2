@@ -2,10 +2,9 @@
 
 import Image from "next/image";
 import Link from "next/link";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Input } from "@/components/ui/input";
 import { Search, Gamepad2, Ticket, Smartphone, Zap, Wifi, Star } from "lucide-react";
-import { useState, useMemo } from "react";
+import { useState, useMemo, useRef } from "react";
 
 interface Category {
   id: string;
@@ -37,37 +36,49 @@ const SECTION_TITLES: Record<string, string> = {
 
 export default function GameGrid({ categories }: GameGridProps) {
   const [search, setSearch] = useState("");
-  const [activeTab, setActiveTab] = useState("topup");
+  const [activeSection, setActiveSection] = useState("topup");
+  const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
   const availableSections = useMemo(() => {
     const sectionsWithCategories = new Set(categories.map(c => c.menuSection));
     return MENU_SECTIONS.filter(section => sectionsWithCategories.has(section.key));
   }, [categories]);
 
-  const filteredBySection = useMemo(() => {
-    return categories.filter(cat => 
-      cat.menuSection === activeTab && 
-      cat.name.toLowerCase().includes(search.toLowerCase())
-    );
-  }, [categories, activeTab, search]);
+  const categoriesBySection = useMemo(() => {
+    const query = search.toLowerCase();
+    const bySection: Record<string, Category[]> = {};
 
-  const defaultTab = availableSections[0]?.key || "topup";
+    for (const section of availableSections) {
+      bySection[section.key] = categories.filter(
+        (cat) => cat.menuSection === section.key && cat.name.toLowerCase().includes(query)
+      );
+    }
+
+    return bySection;
+  }, [categories, availableSections, search]);
+
+  const scrollToSection = (sectionKey: string) => {
+    const target = sectionRefs.current[sectionKey];
+    if (!target) return;
+    setActiveSection(sectionKey);
+    target.scrollIntoView({ behavior: "smooth", block: "start" });
+  };
 
   return (
     <section className="container mx-auto px-4 md:px-8 lg:px-12 py-8 md:py-12 bg-slate-900">
-      {/* CATEGORIES SECTION */}
-      <Tabs defaultValue={defaultTab} value={activeTab} onValueChange={setActiveTab} className="w-full flex flex-col">
+      <div className="w-full flex flex-col">
         <div className="w-full overflow-x-auto no-scrollbar mb-6 pb-2">
-          <TabsList className="flex w-max bg-transparent h-auto p-0 gap-3">
+          <div className="flex w-max gap-3">
             {availableSections.map((section) => (
-              <CategoryTab 
-                key={section.key} 
-                value={section.key} 
-                label={section.label} 
-                icon={<section.icon className="w-4 h-4" />} 
+              <CategoryNavButton
+                key={section.key}
+                label={section.label}
+                icon={<section.icon className="w-4 h-4" />}
+                isActive={activeSection === section.key}
+                onClick={() => scrollToSection(section.key)}
               />
             ))}
-          </TabsList>
+          </div>
         </div>
 
         <div className="block w-full mb-10">
@@ -83,32 +94,54 @@ export default function GameGrid({ categories }: GameGridProps) {
         </div>
 
         {availableSections.map((section) => (
-          <TabsContent key={section.key} value={section.key} className="mt-0 outline-none block w-full">
+          <div
+            key={section.key}
+            ref={(el) => {
+              sectionRefs.current[section.key] = el;
+            }}
+            className="mt-0 outline-none block w-full scroll-mt-24"
+            id={`section-${section.key}`}
+          >
             <CategoryTitle title={SECTION_TITLES[section.key] || section.label} />
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4 md:gap-6">
-              {filteredBySection.length === 0 && activeTab === section.key ? (
+              {categoriesBySection[section.key]?.length === 0 ? (
                 <p className="col-span-full text-center text-slate-500 py-12 italic">Tidak ada {section.label.toLowerCase()} ditemukan.</p>
               ) : (
-                filteredBySection.map((game) => (
+                categoriesBySection[section.key].map((game) => (
                   <GameCard key={game.id} game={game} />
                 ))
               )}
             </div>
-          </TabsContent>
+          </div>
         ))}
-      </Tabs>
+      </div>
     </section>
   );
 }
 
-function CategoryTab({ value, label, icon }: { value: string, label: string, icon: React.ReactNode }) {
+function CategoryNavButton({
+  label,
+  icon,
+  isActive,
+  onClick,
+}: {
+  label: string
+  icon: React.ReactNode
+  isActive: boolean
+  onClick: () => void
+}) {
   return (
-    <TabsTrigger 
-      value={value} 
-      className="flex items-center gap-2.5 rounded-full bg-slate-800 border border-slate-700 px-6 py-3 text-xs md:text-sm font-bold text-slate-400 data-[state=active]:bg-yellow-500 data-[state=active]:text-black data-[state=active]:border-yellow-500 transition-all whitespace-nowrap"
+    <button
+      type="button"
+      onClick={onClick}
+      className={`flex items-center gap-2.5 rounded-full border px-6 py-3 text-xs md:text-sm font-bold transition-all whitespace-nowrap ${
+        isActive
+          ? "bg-yellow-500 text-black border-yellow-500"
+          : "bg-slate-800 text-slate-400 border-slate-700 hover:border-yellow-500 hover:text-yellow-400"
+      }`}
     >
       {icon} {label}
-    </TabsTrigger>
+    </button>
   );
 }
 

@@ -142,7 +142,7 @@ export default function AdminFlashSalePage() {
 
   const filteredProducts = products.filter(p => 
     p.name.toLowerCase().includes(search.toLowerCase()) ||
-    p.category.name.toLowerCase().includes(search.toLowerCase())
+    (p.category?.name || "").toLowerCase().includes(search.toLowerCase())
   );
 
   if (loading) {
@@ -270,7 +270,7 @@ export default function AdminFlashSalePage() {
 
                   <div className="flex-1 min-w-0">
                     <p className="text-white font-medium text-sm truncate">{product.name}</p>
-                    <p className="text-xs text-slate-500">{product.category.name}</p>
+                    <p className="text-xs text-slate-500">{product.category?.name || "Tanpa Kategori"}</p>
                   </div>
 
                   <div className="flex items-center gap-2">

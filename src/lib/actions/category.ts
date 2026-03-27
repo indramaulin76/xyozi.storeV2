@@ -26,11 +26,19 @@ export async function getCategoryBySlug(slug: string) {
       where: { slug },
       include: {
         products: {
-          where: { status: 'active' },
+          where: { 
+            status: 'active'
+          },
           orderBy: { sellPrice: 'asc' }
         }
       }
     })
+    
+    // Filter out products without category on the application level
+    if (category) {
+      category.products = category.products.filter(p => p.categoryId !== null);
+    }
+    
     return category
   } catch (error) {
     console.error("Error fetching category by slug:", error)

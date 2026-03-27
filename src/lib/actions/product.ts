@@ -1,8 +1,10 @@
 "use server"
 
+import type { Category } from "@prisma/client"
 import { prisma } from "@/lib/prisma"
 import { revalidatePath } from "next/cache"
 import { fetchDigiflazzPriceList, checkDigiflazzProduct } from "@/lib/digiflazz"
+import { normalizeBrand } from "@/lib/digiflazz-brand"
 import { writeFile, mkdir } from "fs/promises"
 import path from "path"
 
@@ -145,6 +147,43 @@ export async function deleteProductImage(productId: string) {
   }
 }
 
+function resolveCategoryForItemBrand(categories: Category[], itemBrand: string) {
+  const nb = normalizeBrand(itemBrand)
+  if (!nb) return undefined
+
+  for (const c of categories) {
+    if (c.digiflazzBrand && normalizeBrand(c.digiflazzBrand) === nb) {
+      return c
+    }
+  }
+
+  // Cocokkan secara "longgar" juga berdasarkan digiflazzBrand,
+  // supaya variasi seperti "Point Blank" vs "Point-Blank (PB)" tetap bisa masuk.
+  for (const c of categories) {
+    if (!c.digiflazzBrand) continue
+    const db = normalizeBrand(c.digiflazzBrand)
+    if (!db) continue
+    if (nb.includes(db) || db.includes(nb)) {
+      return c
+    }
+  }
+
+  const candidates: Category[] = []
+  for (const c of categories) {
+    const nn = normalizeBrand(c.name)
+    if (!nn) continue
+    if (nb.includes(nn) || nn.includes(nb)) {
+      candidates.push(c)
+    }
+  }
+  if (candidates.length === 0) return undefined
+
+  candidates.sort(
+    (a, b) => normalizeBrand(b.name).length - normalizeBrand(a.name).length
+  )
+  return candidates[0]
+}
+
 export async function syncDigiflazzProducts() {
   try {
     const categories = await prisma.category.findMany()
@@ -159,75 +198,88 @@ export async function syncDigiflazzProducts() {
       return { success: false, error: "Gagal menarik data produk dari Digiflazz. Pastikan konfigurasi benar." }
     }
 
-    let processedCount = 0;
-    let skippedCount = 0;
-    const unmatchedBrands: string[] = [];
+    const skuCodes = [...new Set(rawProducts.map((i) => i.buyer_sku_code.toLowerCase()))]
+    const existingRows = await prisma.product.findMany({
+      where: { skuCode: { in: skuCodes } },
+      select: { skuCode: true, categoryId: true },
+    })
+    const existingBySku = new Map(existingRows.map((p) => [p.skuCode, p]))
+
+    let withCategoryCount = 0
+    let noCategoryCount = 0
+    const unmatchedBrands: string[] = []
 
     for (const item of rawProducts) {
-      // Cari kategori dengan prioritas:
-      // 1. Exact match dengan digiflazzBrand
-      // 2. Contains match dengan nama kategori
-      
-      let category = categories.find(c => 
-        c.digiflazzBrand && 
-        c.digiflazzBrand.toLowerCase() === item.brand.toLowerCase()
-      );
-
-      // Fallback ke contains match
-      if (!category) {
-        category = categories.find(c => 
-          item.brand.toLowerCase().includes(c.name.toLowerCase()) ||
-          c.name.toLowerCase().includes(item.brand.toLowerCase())
-        );
-      }
+      const category = resolveCategoryForItemBrand(categories, item.brand)
+      const skuCode = item.buyer_sku_code.toLowerCase()
+      const existing = existingBySku.get(skuCode)
+      const active = !!(item.buyer_product_status && item.seller_product_status)
 
       if (category) {
-        // Hitung harga jual berdasarkan markupPercent dari kategori (default 10%)
-        const markup = category.markupPercent || 10;
-        const sellPrice = Math.ceil(item.price * (1 + markup / 100));
+        const markup = category.markupPercent || 10
+        const sellPrice = Math.ceil(item.price * (1 + markup / 100))
 
         await prisma.product.upsert({
-          where: { skuCode: item.buyer_sku_code },
+          where: { skuCode },
           update: {
             name: item.product_name,
             basicPrice: item.price,
-            sellPrice: sellPrice,
-            status: (item.buyer_product_status && item.seller_product_status) ? "active" : "inactive"
+            sellPrice,
+            status: active ? "active" : "inactive",
+            ...(existing?.categoryId == null ? { categoryId: category.id } : {}),
           },
           create: {
             categoryId: category.id,
-            skuCode: item.buyer_sku_code.toLowerCase(),
+            skuCode,
             name: item.product_name,
             basicPrice: item.price,
-            sellPrice: sellPrice,
+            sellPrice,
             maxPrice: item.price * 1.5,
-            status: "active"
-          }
+            status: active ? "active" : "inactive",
+          },
         })
-        processedCount++;
+        withCategoryCount++
       } else {
-        skippedCount++;
-        // Track unmatched brands
+        await prisma.product.upsert({
+          where: { skuCode },
+          update: {
+            name: item.product_name,
+            basicPrice: item.price,
+            status: active ? "active" : "inactive",
+          },
+          create: {
+            skuCode,
+            name: item.product_name,
+            basicPrice: item.price,
+            sellPrice: item.price * 1.1,
+            maxPrice: item.price * 1.5,
+            status: active ? "active" : "inactive",
+          },
+        })
+        noCategoryCount++
+
         if (!unmatchedBrands.includes(item.brand)) {
-          unmatchedBrands.push(item.brand);
+          unmatchedBrands.push(item.brand)
         }
       }
     }
 
     revalidatePath("/admin/produk")
     
-    let message = `Berhasil memproses ${processedCount} produk dari ${rawProducts.length} data Digiflazz.`;
-    if (skippedCount > 0) {
-      message += ` ${skippedCount} produk tidak cocok dengan kategori manapun.`;
+    let message = `Berhasil sync ${rawProducts.length} produk dari Digiflazz!`;
+    message += `\n✅ Dengan Kategori: ${withCategoryCount}`;
+    message += `\n⚠️ Tanpa Kategori: ${noCategoryCount} (silakan assign manual di admin)`;
+    if (unmatchedBrands.length > 0) {
+      message += `\nUnmatched brand (contoh): ${unmatchedBrands.slice(0, 10).join(", ")}`;
     }
     
     return { 
       success: true, 
       message,
       detail: {
-        processed: processedCount,
-        skipped: skippedCount,
-        unmatchedBrands: unmatchedBrands.slice(0, 10) // Max 10 brands shown
+        withCategory: withCategoryCount,
+        noCategory: noCategoryCount,
+        unmatchedBrands: unmatchedBrands.slice(0, 10)
       }
     }
   } catch (error: any) {
@@ -399,5 +451,81 @@ export async function incrementOrderCount(productId: string) {
   } catch (error) {
     console.error("Error incrementing order count:", error)
     return { success: false }
+  }
+}
+
+export async function bulkAssignCategory(productIds: string[], categoryId: string | null) {
+  try {
+    if (productIds.length === 0) {
+      return { success: false, error: "Pilih minimal 1 produk" }
+    }
+
+    await prisma.product.updateMany({
+      where: { id: { in: productIds } },
+      data:
+        categoryId === null
+          ? { categoryId: null }
+          : { categoryId },
+    })
+
+    revalidatePath("/admin/produk")
+    revalidatePath("/")
+
+    const message =
+      categoryId === null
+        ? `${productIds.length} produk berhasil dilepas dari kategori`
+        : `${productIds.length} produk berhasil di-assign ke kategori`
+
+    return {
+      success: true,
+      message,
+    }
+  } catch (error: any) {
+    console.error("Error bulk assign category:", error)
+    return { success: false, error: error.message || "Gagal assign kategori" }
+  }
+}
+
+export async function bulkDeleteProducts(productIds: string[]) {
+  try {
+    if (productIds.length === 0) {
+      return { success: false, error: "Pilih minimal 1 produk" }
+    }
+
+    await prisma.product.deleteMany({
+      where: { id: { in: productIds } }
+    })
+
+    revalidatePath("/admin/produk")
+    revalidatePath("/")
+    
+    return { 
+      success: true, 
+      message: `${productIds.length} produk berhasil dihapus` 
+    }
+  } catch (error: any) {
+    console.error("Error bulk delete:", error)
+    return { success: false, error: error.message || "Gagal hapus produk" }
+  }
+}
+
+export async function deleteProductsWithoutCategory() {
+  try {
+    const result = await prisma.product.deleteMany({
+      where: { 
+        categoryId: { equals: null } as any
+      }
+    } as any)
+    
+    revalidatePath("/admin/produk")
+    revalidatePath("/")
+    
+    return { 
+      success: true, 
+      message: `${result.count} produk tanpa kategori berhasil dihapus` 
+    }
+  } catch (error: any) {
+    console.error("Error delete products without category:", error)
+    return { success: false, error: error.message || "Gagal hapus produk tanpa kategori" }
   }
 }

@@ -88,7 +88,7 @@ export default async function AdminDashboard() {
                         </td>
                         <td className="px-6 py-4">
                           <div className="text-white font-medium">{order.product.name}</div>
-                          <div className="text-xs text-slate-500">{order.product.category.name}</div>
+                          <div className="text-xs text-slate-500">{order.product.category?.name || "Tanpa Kategori"}</div>
                         </td>
                         <td className="px-6 py-4 text-white font-bold">
                           {formatRupiah(order.amount)}

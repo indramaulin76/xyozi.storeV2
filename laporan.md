@@ -2,38 +2,6 @@
 
 ## ✅ Pekerjaan yang Sudah Selesai
 
-### fase 13: Digiflazz Brand Mapping & SKU Validation (27-03-2026)
-- [x] **Database Schema**: Field `digiflazzBrand` pada Category untuk mapping brand persis
-- [x] **Admin Kategori**: Input "Brand Digiflazz" untuk mapping yang tepat
-- [x] **Sync Logic**: Prioritas exact match > contains match, info brand yang tidak tertangkap
-- [x] **SKU Validation**: Cek produk tersedia di Digiflazz sebelum tambah manual
-- [x] **Auto-fill**: Jika SKU valid, auto-fill nama, harga, brand
-- [x] **Caching**: Price list Digiflazz di-cache 5 menit untuk performa
-
-### fase 12: Flash Sale & Produk Populer (27-03-2026)
-- [x] **Database Schema**: Field `isFlashSale`, `flashSalePrice`, `isPopular`, `orderCount` pada Product
-- [x] **Flash Sale Admin** (`/admin/flash-sale`): Toggle enable/disable, pilih produk, set harga flash sale
-- [x] **Produk Populer Admin** (`/admin/produk-populer`): Toggle popular/unpopular per produk
-- [x] **Flash Sale Component**: Dynamic data dari database, countdown timer, discount badge
-- [x] **Popular Products Component**: Horizontal scroll dengan badge "Populer"
-- [x] **Home Page**: FlashSale + PopularProducts + GameGrid
-- [x] **Admin Sidebar**: Tambah menu Flash Sale dan Produk Populer
-
-### fase 10: Admin Dashboard Dinamis (27-03-2026)
-- [x] **Dashboard Stats**: Total orders, revenue, products, categories dari database
-- [x] **Recent Orders**: 5 transaksi terbaru dengan link ke invoice
-- [x] **System Status**: Health check API Digiflazz dan Sukurupiah
-- [x] **Theme Gold**: Tema gold diterapkan ke halaman bantuan, cek transaksi, kalkulator
-
-### fase 11: Pengaturan Website 6 Tab (27-03-2026)
-- [x] **Tab Menu Horizontal**: Custom buttons (Toko, SEO, Sosial, Kontak, Halaman, Footer)
-- [x] **Tab Toko**: Logo upload, nama toko, tagline, teks logo fallback
-- [x] **Tab SEO**: Meta title, meta description, keywords
-- [x] **Tab Sosial**: Facebook, Instagram, TikTok, YouTube
-- [x] **Tab Kontak**: WhatsApp, Email, Hotline, Alamat
-- [x] **Tab Halaman**: Tentang Kami, Syarat & Ketentuan, Kebijakan Privasi
-- [x] **Tab Footer**: Copyright text dengan preview
-
 ### fase 1: Setup & Fix Bug (25-03-2026)
 - [x] **Fix UI Admin (Base UI Error)**: Memperbaiki error `asChild` pada `DialogTrigger`
 - [x] **Auth Cleanup**: Menghapus penggunaan `any` pada `src/auth.ts`
@@ -51,7 +19,8 @@
 
 ### fase 3: Menu Dinamis (26-03-2026)
 - [x] **Field menuSection**: topup, voucher, pulsa, token, data
-- [x] **Tabs Dinamis**: Filter per section aktif
+- [x] **Navigasi Dinamis**: Tombol section sebagai navigasi
+- [x] **Section Display**: Semua section tampil sekaligus di homepage (tidak lagi 1 tab aktif)
 - [x] **Fix UI Admin**: Dialog kategori yang lebih besar
 
 ### fase 4: Payment Gateway Sukurupiah (26-03-2026)
@@ -93,6 +62,74 @@
 - [x] **Navbar Dynamic**: Logo dari database, fallback text "Tokomu"
 - [x] **FlashSale Cards**: Zoom on hover, hapus translateY
 - [x] **GameGrid Cards**: Full container image, zoom on hover
+
+### fase 10: Admin Dashboard Dinamis (27-03-2026)
+- [x] **Dashboard Stats**: Total orders, revenue, products, categories dari database
+- [x] **Recent Orders**: 5 transaksi terbaru dengan link ke invoice
+- [x] **System Status**: Health check API Digiflazz dan Sukurupiah
+- [x] **Theme Gold**: Tema gold diterapkan ke halaman bantuan, cek transaksi, kalkulator
+
+### fase 11: Pengaturan Website 6 Tab (27-03-2026)
+- [x] **Tab Menu Horizontal**: Custom buttons (Toko, SEO, Sosial, Kontak, Halaman, Footer)
+- [x] **Tab Toko**: Logo upload, nama toko, tagline, teks logo fallback
+- [x] **Tab SEO**: Meta title, meta description, keywords
+- [x] **Tab Sosial**: Facebook, Instagram, TikTok, YouTube
+- [x] **Tab Kontak**: WhatsApp, Email, Hotline, Alamat
+- [x] **Tab Halaman**: Tentang Kami, Syarat & Ketentuan, Kebijakan Privasi
+- [x] **Tab Footer**: Copyright text dengan preview
+
+### fase 12: Flash Sale & Produk Populer (27-03-2026)
+- [x] **Database Schema**: Field `isFlashSale`, `flashSalePrice`, `isPopular`, `orderCount` pada Product
+- [x] **Flash Sale Admin** (`/admin/flash-sale`): Toggle enable/disable, pilih produk, set harga flash sale
+- [x] **Produk Populer Admin** (`/admin/produk-populer`): Toggle popular/unpopular per produk
+- [x] **Flash Sale Component**: Dynamic data dari database, countdown timer, discount badge
+- [x] **Popular Products Component**: Horizontal scroll dengan badge "Populer"
+- [x] **Home Page**: FlashSale + PopularProducts + GameGrid
+- [x] **Admin Sidebar**: Tambah menu Flash Sale dan Produk Populer
+
+### fase 13: Digiflazz Brand Mapping & SKU Validation (27-03-2026)
+- [x] **Database Schema**: Field `digiflazzBrand` pada Category untuk mapping brand persis
+- [x] **Admin Kategori**: Input "Brand Digiflazz" untuk mapping yang tepat
+- [x] **Sync Logic**: Prioritas exact match > contains match, info brand yang tidak tertangkap
+- [x] **SKU Validation**: Cek produk tersedia di Digiflazz sebelum tambah manual
+- [x] **Auto-fill**: Jika SKU valid, auto-fill nama, harga, brand
+- [x] **Caching**: Price list Digiflazz di-cache 5 menit untuk performa
+
+### fase 14: Digiflazz API Debug & Fix (27-03-2026)
+- [x] **Debug Logging**: Console log untuk response Digiflazz, SKU yang dicek, sample SKUs
+- [x] **SKU Case Fix**: Case-insensitive matching (`toLowerCase()`)
+- [x] **Cache/Mutex**: Handling concurrent requests, tunggu request pertama selesai
+- [x] **Error Handling**: Better error messages dari API Digiflazz
+
+### fase 15: Bulk Actions & Products Without Category (28-03-2026)
+- [x] **Database Schema**: `categoryId` menjadi nullable (`String?`)
+- [x] **Sync Logic**: Semua produk dari Digiflazz di-sync, termasuk yang tidak match kategori (categoryId: null)
+- [x] **Admin Filter**: Dropdown filter "Tanpa Kategori" dengan count
+- [x] **Admin Display**: Label merah "Tanpa Kategori" untuk produk tanpa kategori
+- [x] **User Page Filter**: Produk tanpa kategori tidak tampil di halaman user
+- [x] **Bulk Assign**: Checkbox + dropdown assign kategori ke beberapa produk
+- [x] **Bulk Delete**: Hapus produk yang dipilih
+- [x] **Delete Without Category**: Button "Hapus Tanpa Kategori" untuk bulk delete produk tanpa kategori
+- [x] **Fix Null Errors**: Perbaiki error `category.name` di flash-sale, produk-populer, admin dashboard
+
+### fase 16: Digiflazz Auto-Mapping Hardening (28-03-2026)
+- [x] **Normalizer Baru**: Tambah helper `normalizeBrand()` di `src/lib/digiflazz-brand.ts`
+- [x] **Brand Matching Lebih Kuat**: Exact match + fallback longgar berbasis `digiflazzBrand` dan `category.name`
+- [x] **Karakter Spesial**: Normalisasi sekarang menghapus simbol/tanda baca agar mapping tidak miss
+- [x] **Safe Category Update**: `categoryId` hanya diisi saat produk existing masih `null` (tidak overwrite assign manual)
+- [x] **Bulk Unassign**: Tambah aksi “Lepas Kategori” (set `categoryId: null`) di admin produk
+- [x] **Sync Debug Info**: Alert sync menampilkan contoh `unmatchedBrands` untuk troubleshooting cepat
+
+### fase 17: Perbaikan Warning UI (HTML Bocor) (28-03-2026)
+- [x] **Bug Fix OrderForm**: Perbaiki teks warning yang menampilkan HTML mentah (`<span ...>`)
+- [x] **Safe JSX Render**: Ganti template string HTML menjadi JSX fragment
+- [x] **Result**: Teks warning kembali normal, termasuk untuk field kedua (`Zone ID`, `Tagline`, dll)
+
+### fase 18: Home Page Navigasi Scroll + Semua Section Tampil (28-03-2026)
+- [x] **GameGrid UX Update**: Semua kategori sekarang tampil di homepage (dikelompokkan per `menuSection`)
+- [x] **Navigasi Section**: Tombol section di atas menjadi shortcut scroll ke judul section terkait
+- [x] **Search Behavior**: Search tetap aktif dan memfilter isi per section tanpa menyembunyikan section lain
+- [x] **UI Consistency**: Highlight tombol navigasi aktif saat user klik section
 
 ---
 
@@ -157,16 +194,20 @@ npx prisma db push --accept-data-loss
 |------|-----------|
 | `prisma/schema.prisma` | Tambah `digiflazzBrand` ke Category |
 | `src/lib/actions/category.ts` | Support `digiflazzBrand` di create/update |
-| `src/lib/actions/product.ts` | Tambah `checkProductInDigiflazz()`, improve sync logic |
+| `src/lib/actions/product.ts` | Tambah `checkProductInDigiflazz()`, improve sync logic, safe update `categoryId`, unmatched brands info |
+| `src/lib/digiflazz-brand.ts` | Helper normalisasi brand untuk auto-mapping |
 | `src/lib/digiflazz.ts` | Tambah caching 5 menit, `checkDigiflazzProduct()` |
 | `src/app/admin/kategori/page.tsx` | Tambah input "Brand Digiflazz" |
-| `src/app/admin/produk/page.tsx` | Tambah validasi SKU dengan "Cek" button |
+| `src/app/admin/produk/page.tsx` | Tambah validasi SKU dengan "Cek" button + aksi bulk unassign |
+| `src/components/product/OrderForm.tsx` | Fix warning text agar tidak menampilkan HTML mentah |
+| `src/components/home/GameGrid.tsx` | Semua section tampil + navigasi scroll ke section |
 
 ### Cara Pakai:
 1. Buka Admin Kategori, edit category (misal: Free Fire)
 2. Isi field "Brand Digiflazz" dengan nama persis dari Digiflazz (contoh: "Free Fire")
 3. Sync produk dari Digiflazz
-4. Untuk tambah manual: masukkan SKU → klik "Cek" → auto-fill jika valid
+4. Jika masih ada miss, cek daftar `unmatchedBrands` di hasil sync untuk tahu brand yang belum terpetakan
+5. Untuk tambah manual: masukkan SKU → klik "Cek" → auto-fill jika valid
 
 ---
 
@@ -217,30 +258,34 @@ BRIVA       | ✅     | 1073599112       | Rp 3.500
 | `src/app/(user)/tos/page.tsx` | Halaman Syarat & Ketentuan |
 | `src/lib/actions/dashboard.ts` | Dashboard stats actions |
 
-### File Diubah (18 file):
+### File Diubah (20 file):
 | File | Perubahan |
 |------|-----------|
 | `.env` | Credential Sukurupiah + DIGIFLAZZ_TESTING |
-| `prisma/schema.prisma` | field1Label, field2Label, imageUrl, payment fields, flash sale, popular |
-| `src/lib/digiflazz.ts` | purchaseProduct() + processTopUpAfterPayment() + caching |
+| `prisma/schema.prisma` | categoryId nullable, field1Label, field2Label, imageUrl, payment fields, flash sale, popular |
+| `src/lib/digiflazz.ts` | purchaseProduct() + processTopUpAfterPayment() + caching + debug logging + case-insensitive |
+| `src/lib/digiflazz-brand.ts` | normalizeBrand untuk hardening mapping brand |
 | `src/lib/actions/order.ts` | Integrasi Sukurupiah API |
-| `src/lib/actions/category.ts` | Support dynamic field labels + digiflazzBrand |
-| `src/lib/actions/product.ts` | Image upload + flash sale + popular + SKU validation |
+| `src/lib/actions/category.ts` | Filter products without category di getCategoryBySlug |
+| `src/lib/actions/product.ts` | bulkAssignCategory/bulkUnassign, deleteProductsWithoutCategory, hardening brand mapping sync |
 | `src/lib/actions/settings.ts` | Flash sale settings |
-| `src/components/product/OrderForm.tsx` | Premium UI + dynamic forms + link to tos |
+| `src/components/product/OrderForm.tsx` | Premium UI + dynamic forms + link to tos + fix warning JSX |
 | `src/components/product/PaymentMethodSelector.tsx` | Gold theme |
 | `src/components/home/Hero.tsx` | Premium banner |
-| `src/components/home/FlashSale.tsx` | Dynamic data, gold badge |
-| `src/components/home/GameGrid.tsx` | Premium game grid, hapus duplicate popular |
+| `src/components/home/FlashSale.tsx` | Dynamic data, gold badge, null safety |
+| `src/components/home/GameGrid.tsx` | Premium game grid + semua section tampil + navigasi scroll per section |
 | `src/components/layout/Navbar.tsx` | Dynamic logo |
 | `src/components/layout/Footer.tsx` | Gold hover, link tos/privacy |
 | `src/app/admin/layout.tsx` | Menu flash sale + produk populer |
-| `src/app/admin/produk/page.tsx` | SKU validation dengan "Cek" button |
+| `src/app/admin/produk/page.tsx` | SKU validation + bulk actions + filter without category |
 | `src/app/admin/kategori/page.tsx` | Input digiflazzBrand |
 | `src/app/(user)/page.tsx` | Tambah PopularProducts |
 | `src/app/admin/kategori/page.tsx` | Field label inputs |
 | `src/app/admin/pengaturan/page.tsx` | Logo upload |
 | `src/app/(user)/transaksi/[id]/page.tsx` | Invoice dengan data dinamis |
+| `src/app/admin/page.tsx` | Fix null category di recent orders |
+| `src/app/admin/flash-sale/page.tsx` | Fix null category di filter & display |
+| `src/app/admin/produk-populer/page.tsx` | Fix null category di filter & display |
 
 ---
 
@@ -472,6 +517,10 @@ Digiflazz:
 - [x] Kelola Produk - Search & Filter Dinamis
 - [x] Pengaturan Website - 6 Tab (Toko, SEO, Sosial, Kontak, Halaman, Footer)
 - [x] Theme Gold - Halaman bantuan, cek transaksi, kalkulator
+- [x] Bulk Assign Kategori - Checkbox + dropdown
+- [x] Hapus Produk Tanpa Kategori
+- [x] Fix Null Category Errors - flash-sale, produk-populer, admin dashboard
+- [x] Sync Semua Produk - termasuk tanpa kategori
 - [ ] Setup ngrok untuk test webhook
 - [ ] Test webhook dengan simulator Sukurupiah
 - [ ] Test auto top-up Digiflazz end-to-end
@@ -539,4 +588,4 @@ Contoh (BCAVA, Rp 10.000):
 
 ---
 
-*Laporan ini diperbarui: 27-03-2026 20:00*
+*Laporan ini diperbarui: 28-03-2026 (update malam)*

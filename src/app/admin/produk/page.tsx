@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { getProducts, createProduct, deleteProduct, syncDigiflazzProducts, checkProductInDigiflazz } from "@/lib/actions/product";
+import { getProducts, createProduct, deleteProduct, syncDigiflazzProducts, checkProductInDigiflazz, bulkAssignCategory, bulkDeleteProducts, deleteProductsWithoutCategory } from "@/lib/actions/product";
 import { getCategories } from "@/lib/actions/category";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { formatRupiah } from "@/lib/utils";
@@ -38,12 +38,120 @@ export default function AdminProdukPage() {
   // Filtered Products
   const filteredProducts = useMemo(() => {
     return products.filter((product) => {
-      const matchesCategory = filterCategory === "" || 
-        product.categoryId === filterCategory;
-      
-      return matchesCategory;
+      if (filterCategory === "") return true;
+      if (filterCategory === "no-category") return product.categoryId === null;
+      return product.categoryId === filterCategory;
     });
   }, [products, filterCategory]);
+
+  // Count products without category
+  const noCategoryCount = useMemo(() => {
+    return products.filter(p => p.categoryId === null).length;
+  }, [products]);
+
+  // Bulk Selection State
+  const [selectedProducts, setSelectedProducts] = useState<string[]>([]);
+  const [bulkCategoryId, setBulkCategoryId] = useState("");
+  const [bulkLoading, setBulkLoading] = useState(false);
+
+  // Toggle single product selection
+  const toggleProductSelection = (productId: string) => {
+    setSelectedProducts(prev => 
+      prev.includes(productId)
+        ? prev.filter(id => id !== productId)
+        : [...prev, productId]
+    );
+  };
+
+  // Toggle all products selection
+  const toggleAllSelection = () => {
+    if (selectedProducts.length === filteredProducts.length) {
+      setSelectedProducts([]);
+    } else {
+      setSelectedProducts(filteredProducts.map(p => p.id));
+    }
+  };
+
+  // Handle bulk assign category
+  const handleBulkAssign = async () => {
+    if (!bulkCategoryId) {
+      alert("Pilih kategori terlebih dahulu!");
+      return;
+    }
+    if (selectedProducts.length === 0) {
+      alert("Pilih produk terlebih dahulu!");
+      return;
+    }
+
+    setBulkLoading(true);
+    const result = await bulkAssignCategory(selectedProducts, bulkCategoryId);
+    setBulkLoading(false);
+
+    if (result.success) {
+      alert(result.message);
+      setSelectedProducts([]);
+      setBulkCategoryId("");
+      fetchData();
+    } else {
+      alert(result.error);
+    }
+  };
+
+  const handleBulkUnassign = async () => {
+    if (selectedProducts.length === 0) {
+      alert("Pilih produk terlebih dahulu!");
+      return;
+    }
+    if (!confirm(`Lepas kategori dari ${selectedProducts.length} produk yang dipilih? (Produk akan masuk ke Tanpa Kategori)`)) return;
+
+    setBulkLoading(true);
+    const result = await bulkAssignCategory(selectedProducts, null);
+    setBulkLoading(false);
+
+    if (result.success) {
+      alert(result.message);
+      setSelectedProducts([]);
+      setBulkCategoryId("");
+      fetchData();
+    } else {
+      alert(result.error);
+    }
+  };
+
+  // Handle bulk delete selected products
+  const handleBulkDelete = async () => {
+    if (selectedProducts.length === 0) {
+      alert("Pilih produk terlebih dahulu!");
+      return;
+    }
+    if (!confirm(`Yakin hapus ${selectedProducts.length} produk yang dipilih?`)) return;
+
+    setBulkLoading(true);
+    const result = await bulkDeleteProducts(selectedProducts);
+    setBulkLoading(false);
+
+    if (result.success) {
+      alert(result.message);
+      setSelectedProducts([]);
+      fetchData();
+    } else {
+      alert(result.error);
+    }
+  };
+
+  // Handle delete ALL products and categories
+  const handleDeleteAll = async () => {
+    if (!confirm("⚠️ Yakin hapus semua produk TANPA KATEGORI?\n\nProduk yang tidak memiliki kategori akan dihapus permanen!")) return;
+
+    const result = await deleteProductsWithoutCategory();
+    if (result.success) {
+      alert(result.message);
+      setSelectedProducts([]);
+      fetchData();
+    } else {
+      alert(result.error);
+    }
+  };
 
   // Form State
   const [formData, setFormData] = useState({
@@ -199,6 +307,14 @@ export default function AdminProdukPage() {
           >
             {syncing ? <Loader2 size={16} className="animate-spin" /> : <RefreshCw size={16} />} 
             {syncing ? "Syncing..." : "Sync Digiflazz"}
+          </button>
+
+          <button 
+            onClick={handleDeleteAll}
+            className="bg-red-600 hover:bg-red-500 text-white px-4 py-2.5 rounded-xl font-bold text-xs uppercase tracking-widest flex items-center gap-2 transition-all"
+          >
+            <Trash2 size={16} /> 
+            Hapus Tanpa Kategori
           </button>
 
           {/* ADD PRODUCT DIALOG */}
@@ -407,6 +523,9 @@ export default function AdminProdukPage() {
               onChange={(e) => setFilterCategory(e.target.value)}
             >
               <option value="">Semua Kategori</option>
+              {noCategoryCount > 0 && (
+                <option value="no-category" className="text-yellow-500">⚠️ Tanpa Kategori ({noCategoryCount})</option>
+              )}
               {categories.map((cat) => (
                 <option key={cat.id} value={cat.id}>{cat.name}</option>
               ))}
@@ -424,32 +543,84 @@ export default function AdminProdukPage() {
             Menampilkan <span className="text-white font-bold">{filteredProducts.length}</span> produk
           </span>
         </div>
+        
+        {/* Bulk Action Bar */}
+        {selectedProducts.length > 0 && (
+          <div className="px-6 py-4 bg-yellow-500/10 border-b border-yellow-500/20 flex flex-wrap items-center gap-4">
+            <span className="text-sm font-bold text-yellow-400">
+              {selectedProducts.length} produk dipilih
+            </span>
+            <div className="flex items-center gap-2 flex-1">
+              <select 
+                value={bulkCategoryId}
+                onChange={(e) => setBulkCategoryId(e.target.value)}
+                className="bg-slate-950 border border-yellow-500/30 text-white text-sm font-bold rounded-xl px-4 py-2 outline-none focus:ring-2 focus:ring-yellow-500"
+              >
+                <option value="">Pilih Kategori...</option>
+                {categories.map((cat) => (
+                  <option key={cat.id} value={cat.id}>{cat.name}</option>
+                ))}
+              </select>
+              <button
+                onClick={handleBulkAssign}
+                disabled={!bulkCategoryId || bulkLoading}
+                className="bg-yellow-500 hover:bg-yellow-400 disabled:bg-slate-700 disabled:cursor-not-allowed text-black px-4 py-2 rounded-xl font-bold text-xs uppercase flex items-center gap-2 transition-all"
+              >
+                {bulkLoading ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />}
+                Assign Kategori
+              </button>
+              <button
+                type="button"
+                onClick={handleBulkUnassign}
+                disabled={bulkLoading}
+                className="bg-slate-700 hover:bg-slate-600 disabled:opacity-50 disabled:cursor-not-allowed text-white px-4 py-2 rounded-xl font-bold text-xs uppercase transition-all border border-slate-600"
+              >
+                Lepas Kategori
+              </button>
+              <button
+                onClick={() => setSelectedProducts([])}
+                className="bg-slate-800 hover:bg-slate-700 text-slate-300 px-4 py-2 rounded-xl font-bold text-xs uppercase transition-all"
+              >
+                Batal
+              </button>
+            </div>
+          </div>
+        )}
+        
         <CardContent className="p-0">
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse">
               <thead className="bg-slate-950/50 text-[10px] font-black uppercase text-slate-500 tracking-[0.2em]">
                 <tr>
-                  <th className="px-6 py-4">Gambar</th>
-                  <th className="px-6 py-4">Kategori</th>
-                  <th className="px-6 py-4">SKU Code</th>
-                  <th className="px-6 py-4">Nama Produk</th>
-                  <th className="px-6 py-4">Harga Modal</th>
-                  <th className="px-6 py-4">Harga Jual</th>
-                  <th className="px-6 py-4">Status</th>
-                  <th className="px-6 py-4 text-right">Aksi</th>
+                  <th className="px-4 py-4 w-10">
+                    <input 
+                      type="checkbox" 
+                      checked={selectedProducts.length === filteredProducts.length && filteredProducts.length > 0}
+                      onChange={toggleAllSelection}
+                      className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-yellow-500 focus:ring-yellow-500"
+                    />
+                  </th>
+                  <th className="px-4 py-4">Gambar</th>
+                  <th className="px-4 py-4">Kategori</th>
+                  <th className="px-4 py-4">SKU Code</th>
+                  <th className="px-4 py-4">Nama Produk</th>
+                  <th className="px-4 py-4">Harga Modal</th>
+                  <th className="px-4 py-4">Harga Jual</th>
+                  <th className="px-4 py-4">Status</th>
+                  <th className="px-4 py-4 text-right">Aksi</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-800">
                 {fetching ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-slate-500 italic">
+                    <td colSpan={9} className="px-6 py-12 text-center text-slate-500">
                       <Loader2 className="w-6 h-6 animate-spin mx-auto mb-2" />
                       Memuat data produk...
                     </td>
                   </tr>
                 ) : filteredProducts.length === 0 ? (
                   <tr>
-                    <td colSpan={8} className="px-6 py-12 text-center text-slate-500 italic">
+                    <td colSpan={9} className="px-6 py-12 text-center text-slate-500 italic">
                       {products.length === 0 
                         ? "Belum ada data produk yang tersedia." 
                         : "Tidak ada produk yang cocok dengan pencarian."}
@@ -457,8 +628,16 @@ export default function AdminProdukPage() {
                   </tr>
                 ) : (
                   filteredProducts.map((product) => (
-                    <tr key={product.id} className="hover:bg-slate-800/30 transition-colors group">
-                      <td className="px-6 py-4">
+                    <tr key={product.id} className={`hover:bg-slate-800/30 transition-colors group ${selectedProducts.includes(product.id) ? 'bg-yellow-500/10' : ''}`}>
+                      <td className="px-4 py-4">
+                        <input 
+                          type="checkbox" 
+                          checked={selectedProducts.includes(product.id)}
+                          onChange={() => toggleProductSelection(product.id)}
+                          className="w-4 h-4 rounded border-slate-700 bg-slate-800 text-yellow-500 focus:ring-yellow-500"
+                        />
+                      </td>
+                      <td className="px-4 py-4">
                         <button
                           onClick={() => handleOpenImageUpload(product)}
                           className={`
@@ -482,21 +661,27 @@ export default function AdminProdukPage() {
                           )}
                         </button>
                       </td>
-                      <td className="px-6 py-4">
-                        <span className="bg-slate-800 text-yellow-400 text-[10px] font-black px-2 py-1 rounded uppercase tracking-tighter">
-                          {product.category?.name || "N/A"}
-                        </span>
+                      <td className="px-4 py-4">
+                        {product.categoryId ? (
+                          <span className="bg-slate-800 text-yellow-400 text-[10px] font-black px-2 py-1 rounded uppercase tracking-tighter">
+                            {product.category?.name || "N/A"}
+                          </span>
+                        ) : (
+                          <span className="bg-red-500/20 text-red-400 text-[10px] font-black px-2 py-1 rounded uppercase tracking-tighter">
+                            Tanpa Kategori
+                          </span>
+                        )}
                       </td>
-                      <td className="px-6 py-4 text-xs font-mono text-yellow-500">{product.skuCode}</td>
-                      <td className="px-6 py-4 font-bold text-white text-sm">{product.name}</td>
-                      <td className="px-6 py-4 text-sm text-slate-300">{formatRupiah(product.basicPrice)}</td>
-                      <td className="px-6 py-4 text-sm font-black text-yellow-400">{formatRupiah(product.sellPrice)}</td>
-                      <td className="px-6 py-4">
+                      <td className="px-4 py-4 text-xs font-mono text-yellow-500">{product.skuCode}</td>
+                      <td className="px-4 py-4 font-bold text-white text-sm">{product.name}</td>
+                      <td className="px-4 py-4 text-sm text-slate-300">{formatRupiah(product.basicPrice)}</td>
+                      <td className="px-4 py-4 text-sm font-black text-yellow-400">{formatRupiah(product.sellPrice)}</td>
+                      <td className="px-4 py-4">
                         <span className={`text-[10px] font-black px-2 py-1 rounded-lg ${product.status === 'active' ? 'bg-green-500/10 text-green-500' : 'bg-red-500/10 text-red-500'}`}>
                           {product.status.toUpperCase()}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-right">
+                      <td className="px-4 py-4 text-right">
                         <button 
                           onClick={() => handleDelete(product.id)}
                           className="p-2 text-slate-500 hover:text-red-500 transition-colors"

@@ -55,7 +55,7 @@ export default function AdminProdukPopulerPage() {
   const filteredProducts = products
     .filter(p => 
       p.name.toLowerCase().includes(search.toLowerCase()) ||
-      p.category.name.toLowerCase().includes(search.toLowerCase())
+      (p.category?.name || "").toLowerCase().includes(search.toLowerCase())
     )
     .sort((a, b) => {
       if (a.isPopular && !b.isPopular) return -1;
@@ -131,7 +131,7 @@ export default function AdminProdukPopulerPage() {
                       </span>
                     )}
                   </div>
-                  <p className="text-xs text-slate-500">{product.category.name}</p>
+                  <p className="text-xs text-slate-500">{product.category?.name || "Tanpa Kategori"}</p>
                 </div>
 
                 <div className="flex items-center gap-4">

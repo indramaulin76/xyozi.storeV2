@@ -38,8 +38,8 @@ model Category {
 
 model Product {
   id            String   @id @default(cuid())
-  categoryId    String
-  category      Category @relation(fields: [categoryId], references: [id])
+  categoryId    String?  // Nullable - produk tanpa kategori
+  category      Category? @relation(fields: [categoryId], references: [id])
   skuCode       String   @unique // Digiflazz SKU
   name          String
   basicPrice    Float    // Modal dari Digiflazz

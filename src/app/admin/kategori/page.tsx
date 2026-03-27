@@ -259,8 +259,8 @@ export default function AdminKategoriPage() {
                         onChange={(e) => setFormData({...formData, digiflazzBrand: e.target.value})}
                       />
                       <p className="text-[11px] text-slate-500 font-medium">
-                        Isi dengan nama brand persis dari Digiflazz untuk sinkronisasi produk yang tepat.
-                        Contoh: "Mobile Legends", "Free Fire", "Point Blank"
+                        Masukkan nama brand persis seperti di API Digiflazz (contoh: MOBILE LEGENDS, TELKOMSEL).
+                        Sistem menormalisasi spasi dan huruf besar/kecil; produk akan otomatis masuk ke kategori ini saat sinkronisasi.
                       </p>
                     </div>
                   </div>
