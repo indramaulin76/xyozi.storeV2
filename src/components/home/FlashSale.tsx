@@ -15,7 +15,7 @@ interface FlashSaleProduct {
   category: {
     name: string;
     slug: string;
-  };
+  } | null;
 }
 
 interface FlashSaleProps {
@@ -97,7 +97,7 @@ export default function FlashSale({ products, endTime }: FlashSaleProps) {
           {products.map((item) => (
             <Link 
               key={item.id} 
-              href={`/produk/${item.category.slug}`} 
+              href={item.category ? `/produk/${item.category.slug}` : "#"} 
               className="snap-start shrink-0 w-[140px] md:w-[180px] group"
             >
               <div className="bg-slate-900 border-2 border-slate-700 rounded-xl p-3 md:p-4 transition-all duration-300 group-hover:border-yellow-500 shadow-xl relative">
