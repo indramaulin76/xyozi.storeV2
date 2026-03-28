@@ -74,7 +74,7 @@ export default function AdminPengaturanPage() {
     digiflazzTesting: false,
     sukurupiahApiId: "",
     sukurupiahApiKey: "",
-    sukurupiahEndpoint: "https://sukurupiah.com/api/",
+    sukurupiahEndpoint: "https://sakurupiah.id/api-sanbox/",
   });
 
   useEffect(() => {
@@ -614,13 +614,13 @@ export default function AdminPengaturanPage() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">API Endpoint</label>
-                  <Input 
-                    className="bg-slate-950 border-slate-800 rounded-xl" 
-                    placeholder="https://sukurupiah.com/api/" 
-                    value={settings.sukurupiahEndpoint} 
-                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("sukurupiahEndpoint", e.target.value)} 
-                  />
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">API Endpoint</label>
+                    <Input 
+                      className="bg-slate-950 border-slate-800 rounded-xl" 
+                      placeholder="https://sakurupiah.id/api-sanbox/" 
+                      value={settings.sukurupiahEndpoint} 
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("sukurupiahEndpoint", e.target.value)} 
+                    />
                 </div>
               </CardContent>
             </Card>
