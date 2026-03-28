@@ -1,8 +1,8 @@
 "use client";
 
-import React from "react";
+import React, { useEffect } from "react";
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import { 
   LayoutDashboard, 
   Layers, 
@@ -11,19 +11,42 @@ import {
   Settings, 
   LogOut,
   ChevronRight,
-  TrendingUp,
   AlertCircle,
   Zap,
   Star
 } from "lucide-react";
-import { signOut } from "next-auth/react";
+import { signOut, useSession } from "next-auth/react";
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
+  const router = useRouter();
+  const { data: session, status } = useSession();
 
-  // Hide sidebar on login page
-  if (pathname === "/admin/login") {
-    return <>{children}</>;
+  const isLoginPage = pathname === "/admin/login";
+
+  // Proteksi Client-side tambahan
+  useEffect(() => {
+    if (status === "unauthenticated" && !isLoginPage) {
+      router.push("/admin/login");
+    }
+  }, [status, isLoginPage, router]);
+
+  if (isLoginPage) {
+    return <div className="bg-[#020617] min-h-screen">{children}</div>;
+  }
+
+  // Jika sedang loading session, tampilkan skeleton/loading
+  if (status === "loading") {
+    return (
+      <div className="min-h-screen bg-[#020617] flex items-center justify-center">
+        <div className="w-8 h-8 border-4 border-yellow-500 border-t-transparent rounded-full animate-spin" />
+      </div>
+    );
+  }
+
+  // Jika tidak terautentikasi (dan bukan halaman login), jangan render apapun selagi nunggu redirect
+  if (!session && !isLoginPage) {
+    return null;
   }
 
   const menuItems = [
@@ -47,7 +70,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
           </Link>
         </div>
 
-        <nav className="flex-1 px-4 py-4 space-y-1">
+        <nav className="flex-1 px-4 py-4 space-y-1 overflow-y-auto custom-scrollbar">
           {menuItems.map((item) => {
             const isActive = pathname === item.href;
             return (
@@ -71,8 +94,12 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         </nav>
 
         <div className="p-4 border-t border-slate-800">
+          <div className="mb-4 px-4 py-2 bg-slate-900/50 rounded-lg border border-slate-800">
+            <p className="text-[10px] font-black text-slate-500 uppercase tracking-widest mb-1">Login Sebagai</p>
+            <p className="text-xs font-bold text-white truncate">{session?.user?.email}</p>
+          </div>
           <button 
-            onClick={() => signOut()}
+            onClick={() => signOut({ callbackUrl: "/admin/login" })}
             className="flex items-center gap-3 w-full px-4 py-3 text-slate-400 hover:text-red-400 transition-colors font-bold text-sm"
           >
             <LogOut size={20} />
