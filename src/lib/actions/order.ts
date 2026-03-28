@@ -89,27 +89,29 @@ export async function createOrder(data: CreateOrderParams) {
         },
       })
 
-      redirect(`/transaksi/${referenceId}`)
-
+      // Redirect dipanggil di luar blok try-catch invoice atau tangani manual
     } catch (error: any) {
-      console.error('Error creating payment invoice:', error)
-
-      await prisma.order.delete({ where: { id: order.id } })
-
-      if (error.message?.includes('NEXT_REDIRECT')) {
+      // Jika ini adalah redirect, biarkan saja (jangan hapus order)
+      if (error.digest?.includes('NEXT_REDIRECT')) {
         throw error
       }
 
+      console.error('Error creating payment invoice:', error)
+      // Hapus order jika benar-benar gagal membuat invoice (bukan redirect)
+      await prisma.order.delete({ where: { id: order.id } }).catch(() => {})
       return { success: false, error: 'Gagal membuat invoice pembayaran' }
     }
 
-  } catch (error: any) {
-    console.error("Error creating order:", error)
+    // Pindahkan redirect ke sini agar lebih aman
+    redirect(`/transaksi/${referenceId}`)
 
-    if (error.message?.includes('NEXT_REDIRECT')) {
+  } catch (error: any) {
+    // Jika ini adalah redirect, lempar kembali agar Next.js bisa memprosesnya
+    if (error.digest?.includes('NEXT_REDIRECT')) {
       throw error
     }
 
+    console.error("Error creating order:", error)
     return { success: false, error: "Gagal membuat pesanan. Silakan coba lagi." }
   }
 }
