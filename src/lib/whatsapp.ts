@@ -9,11 +9,10 @@ interface SendWhatsAppParams {
 export async function sendWhatsAppNotification(params: SendWhatsAppParams) {
   const { phoneNumber, customerName, invoiceNumber, productName, serialNumber } = params;
 
-  const apiKey = process.env.FONNTE_API_KEY;
-  const device = process.env.FONNTE_DEVICE;
+  const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL;
 
-  if (!apiKey || !device) {
-    console.error("[WhatsApp] FONNTE_API_KEY or FONNTE_DEVICE not configured");
+  if (!n8nWebhookUrl) {
+    console.error("[WhatsApp] N8N_WEBHOOK_URL not configured");
     return { success: false, error: "WhatsApp service not configured" };
   }
 
@@ -28,22 +27,20 @@ export async function sendWhatsAppNotification(params: SendWhatsAppParams) {
   message += " Terima kasih sudah order di Xyozi Store!";
 
   try {
-    const response = await fetch("https://api.fonnte.com/send-message", {
+    const response = await fetch(n8nWebhookUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: apiKey,
       },
       body: JSON.stringify({
-        target: formattedPhone,
+        phone: formattedPhone,
         message: message,
-        device: device,
       }),
     });
 
     const result = await response.json();
 
-    if (result.success) {
+    if (response.ok) {
       console.log(`[WhatsApp] Notification sent successfully to ${formattedPhone}`);
       return { success: true, data: result };
     } else {
