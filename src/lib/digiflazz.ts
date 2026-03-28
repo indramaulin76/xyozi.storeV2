@@ -15,11 +15,34 @@ async function getDigiflazzSettings() {
     return acc;
   }, {} as Record<string, string>);
 
+  // Prioritas: database > env var
+  const apiKey = settingsMap['digiflazz_api_key'] || process.env.DIGIFLAZZ_API_KEY || process.env.DIGIFLAZZ_DEV_KEY;
+
+  // Tentukan testing mode:
+  // 1. Jika ada di database, gunakan nilai database
+  // 2. Jika tidak, fallback ke env var
+  // 3. SAFETY: Jika API key bukan dev key, PAKSA testing = false
+  let testing: boolean;
+  if (settingsMap['digiflazz_testing'] !== undefined) {
+    testing = settingsMap['digiflazz_testing'] === 'true';
+  } else {
+    testing = process.env.DIGIFLAZZ_TESTING === 'true';
+  }
+
+  // Auto-detect: Production key (tanpa prefix 'dev-') HARUS testing = false
+  const isProductionKey = apiKey && !apiKey.startsWith('dev-');
+  if (isProductionKey && testing) {
+    console.warn('[Digiflazz] ⚠️ Production key detected but testing=true! Forcing testing=false.');
+    testing = false;
+  }
+
+  console.log('[Digiflazz] Settings loaded - username:', settingsMap['digiflazz_username'] || process.env.DIGIFLAZZ_USERNAME, ', key prefix:', apiKey?.substring(0, 8) + '...', ', testing:', testing);
+
   return {
     username: settingsMap['digiflazz_username'] || process.env.DIGIFLAZZ_USERNAME,
-    apiKey: settingsMap['digiflazz_api_key'] || process.env.DIGIFLAZZ_DEV_KEY,
+    apiKey,
     endpoint: settingsMap['digiflazz_endpoint'] || process.env.DIGIFLAZZ_ENDPOINT || 'https://api.digiflazz.com/v1',
-    testing: settingsMap['digiflazz_testing'] === 'true' || process.env.DIGIFLAZZ_TESTING === 'true'
+    testing
   };
 }
 
@@ -195,8 +218,12 @@ export async function purchaseProduct(params: PurchaseParams): Promise<Digiflazz
     customer_no: customerNo,
     ref_id: refId,
     sign,
-    testing: settings.testing,
   };
+
+  // Hanya kirim testing=true jika memang mode dev. Jangan kirim testing sama sekali jika false.
+  if (settings.testing) {
+    requestBody.testing = true;
+  }
 
   if (zoneId) {
     requestBody.zone_id = zoneId;

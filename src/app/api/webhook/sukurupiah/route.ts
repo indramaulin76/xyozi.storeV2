@@ -62,7 +62,13 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    if (payload.status === 'berhasil' && Number(payload.status_kode) === 1) {
+    // Normalisasi status agar tidak gagal karena spasi/kapitalisasi
+    const status = String(payload.status || '').trim().toLowerCase();
+    const statusKode = Number(payload.status_kode);
+
+    console.log(`[Webhook] Normalized status: "${status}", kode: ${statusKode}`);
+
+    if (status === 'berhasil' && statusKode === 1) {
       console.log(`[Webhook] Payment berhasil untuk order ${order.id}`);
 
       await prisma.order.update({
@@ -87,7 +93,7 @@ export async function POST(request: NextRequest) {
         message: 'Payment status berhasil',
       });
 
-    } else if (payload.status === 'expired' && Number(payload.status_kode) === 2) {
+    } else if (status === 'expired' && statusKode === 2) {
       console.log(`[Webhook] Payment expired untuk order ${order.id}`);
 
       await prisma.order.update({
@@ -104,7 +110,7 @@ export async function POST(request: NextRequest) {
         message: 'Payment status expired',
       });
 
-    } else if (payload.status === 'pending' && Number(payload.status_kode) === 0) {
+    } else if (status === 'pending' && statusKode === 0) {
       console.log(`[Webhook] Payment pending untuk order ${order.id}`);
 
       await prisma.order.update({
@@ -120,10 +126,11 @@ export async function POST(request: NextRequest) {
       });
 
     } else {
-      console.error(`[Webhook] Unknown status: ${payload.status} (${payload.status_kode})`);
+      // Log detail lengkap untuk debugging
+      console.error(`[Webhook] Unknown status: "${status}" (kode: ${statusKode}), raw payload:`, JSON.stringify(payload));
       return NextResponse.json({
         success: false,
-        message: 'Unknown payment status',
+        message: `Unknown payment status: ${status}`,
       }, { status: 400 });
     }
 
