@@ -276,27 +276,45 @@ export async function processTopUpAfterPayment(orderId: string): Promise<void> {
       zoneId: order.zoneId || undefined,
     });
 
-    if (result.rc === '1' && result.data?.status === 'Sukses') {
+    const status = result.data?.status;
+    const sn = result.data?.sn || null;
+    const message = result.data?.message || result.rd || null;
+
+    console.log(`[Digiflazz] Purchase result - status: ${status}, rc: ${result.rc}, sn: ${sn}, message: ${message}`);
+
+    if (status === 'Sukses') {
       await prisma.order.update({
         where: { id: orderId },
-        data: { digiflazzStatus: 'SUCCESS' },
+        data: { 
+          digiflazzStatus: 'SUCCESS',
+          serialNumber: sn,
+          digiflazzMessage: message,
+        },
       });
+      console.log(`[Digiflazz] Top-up BERHASIL untuk order ${orderId}, SN: ${sn}`);
 
-      console.log(`[Digiflazz] Top-up BERHASIL untuk order ${orderId}`);
-    } else if (result.data?.status === 'Pending') {
+    } else if (status === 'Pending') {
+      // Kebanyakan transaksi produksi akan Pending dulu
+      // Status final akan datang via webhook Digiflazz
       await prisma.order.update({
         where: { id: orderId },
-        data: { digiflazzStatus: 'PROCESSING' },
+        data: { 
+          digiflazzStatus: 'PROCESSING',
+          digiflazzMessage: message,
+        },
       });
+      console.log(`[Digiflazz] Top-up PROCESSING untuk order ${orderId} - menunggu webhook callback`);
 
-      console.log(`[Digiflazz] Top-up PROCESSING untuk order ${orderId}`);
     } else {
+      // Gagal
       await prisma.order.update({
         where: { id: orderId },
-        data: { digiflazzStatus: 'FAILED' },
+        data: { 
+          digiflazzStatus: 'FAILED',
+          digiflazzMessage: message,
+        },
       });
-
-      console.log(`[Digiflazz] Top-up GAGAL untuk order ${orderId}: ${result.rd}`);
+      console.log(`[Digiflazz] Top-up GAGAL untuk order ${orderId}: ${message}`);
     }
 
   } catch (error) {
@@ -304,7 +322,10 @@ export async function processTopUpAfterPayment(orderId: string): Promise<void> {
 
     await prisma.order.update({
       where: { id: orderId },
-      data: { digiflazzStatus: 'FAILED' },
+      data: { 
+        digiflazzStatus: 'FAILED',
+        digiflazzMessage: error instanceof Error ? error.message : 'Unknown error',
+      },
     });
 
     throw error;

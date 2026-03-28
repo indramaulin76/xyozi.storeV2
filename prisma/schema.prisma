@@ -78,6 +78,10 @@ model Order {
   expiredAt          DateTime? // Batas waktu pembayaran
   isPaymentProcessed Boolean   @default(false) // Idempotency flag
   
+  // Digiflazz Response Fields
+  serialNumber       String?   // SN (Serial Number) dari Digiflazz setelah sukses
+  digiflazzMessage   String?   // Pesan dari Digiflazz (error message / info)
+  
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt
 }
