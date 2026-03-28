@@ -1,6 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 
+export const dynamic = 'force-dynamic';
+
 export async function GET(
   request: NextRequest,
   { params }: { params: Promise<{ id: string }> }
@@ -10,9 +12,17 @@ export async function GET(
     
     const order = await prisma.order.findUnique({
       where: { referenceId: id },
-      include: {
+      select: {
+        id: true,
+        referenceId: true,
+        paymentStatus: true,
+        digiflazzStatus: true,
+        serialNumber: true,
+        userGameId: true,
         product: {
-          include: { category: true },
+          select: {
+            name: true,
+          },
         },
       },
     });

@@ -10,7 +10,7 @@ interface OrderData {
   paymentStatus: string;
   digiflazzStatus: string;
   serialNumber?: string | null;
-  product: {
+  product?: {
     name: string;
   };
   userGameId: string;
@@ -40,7 +40,7 @@ export function TransactionStatus({ initialOrder }: { initialOrder: OrderData })
       }
     };
 
-    const interval = setInterval(pollStatus, 5000);
+    const interval = setInterval(pollStatus, 10000);
     return () => clearInterval(interval);
   }, [order.referenceId, order.digiflazzStatus, order.paymentStatus]);
 
@@ -105,7 +105,7 @@ export function TransactionStatus({ initialOrder }: { initialOrder: OrderData })
             Pembayaran Berhasil & Diamond Terkirim!
           </h3>
           <p className="text-slate-400 text-sm mb-3">
-            Item {order.product.name} sudah masuk ke akun {order.userGameId}.
+            Item {order.product?.name || 'pesanan'} sudah masuk ke akun {order.userGameId}.
           </p>
           {order.serialNumber && (
             <div className="inline-block bg-emerald-500/20 px-4 py-2 rounded-lg">
