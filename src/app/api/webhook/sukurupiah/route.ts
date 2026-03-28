@@ -62,7 +62,7 @@ export async function POST(request: NextRequest) {
       });
     }
 
-    if (payload.status === 'berhasil' && payload.status_kode === 1) {
+    if (payload.status === 'berhasil' && Number(payload.status_kode) === 1) {
       console.log(`[Webhook] Payment berhasil untuk order ${order.id}`);
 
       await prisma.order.update({
@@ -87,7 +87,7 @@ export async function POST(request: NextRequest) {
         message: 'Payment status berhasil',
       });
 
-    } else if (payload.status === 'expired' && payload.status_kode === 2) {
+    } else if (payload.status === 'expired' && Number(payload.status_kode) === 2) {
       console.log(`[Webhook] Payment expired untuk order ${order.id}`);
 
       await prisma.order.update({
@@ -104,7 +104,7 @@ export async function POST(request: NextRequest) {
         message: 'Payment status expired',
       });
 
-    } else if (payload.status === 'pending' && payload.status_kode === 0) {
+    } else if (payload.status === 'pending' && Number(payload.status_kode) === 0) {
       console.log(`[Webhook] Payment pending untuk order ${order.id}`);
 
       await prisma.order.update({
