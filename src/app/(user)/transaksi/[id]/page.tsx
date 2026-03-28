@@ -81,7 +81,7 @@ export default async function TransactionDetailPage({ params }: PageProps) {
               <CardContent className="p-6 space-y-6">
                 <div className="grid grid-cols-2 gap-y-4 text-sm">
                   <div className="text-slate-400">Game</div>
-                  <div className="text-white font-bold text-right">{order.product.category.name}</div>
+                  <div className="text-white font-bold text-right">{order.product.category?.name || "Lainnya"}</div>
                   
                   <div className="text-slate-400">Produk</div>
                   <div className="text-white font-bold text-right">{order.product.name}</div>
