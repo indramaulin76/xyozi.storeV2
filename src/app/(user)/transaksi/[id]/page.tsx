@@ -2,11 +2,11 @@ import React from "react";
 import { getOrderByReference } from "@/lib/actions/order";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, AlertCircle, QrCode, CreditCard, Copy, ArrowLeft, ExternalLink, Clock, Loader2 } from "lucide-react";
+import { CheckCircle2, AlertCircle, QrCode, CreditCard, Copy, ArrowLeft, ExternalLink, Clock } from "lucide-react";
 import Link from "next/link";
 import { getPaymentMethod, formatPaymentGuide } from "@/lib/payment-methods";
 import { PaymentStatusClient } from "./PaymentStatusClient";
-import { StatusPollingClient } from "./StatusPollingClient";
+import { TransactionStatus } from "./TransactionStatus";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -113,7 +113,8 @@ export default async function TransactionDetailPage({ params }: PageProps) {
               </CardContent>
             </Card>
 
-            <StatusPollingClient initialOrder={order} />
+            {/* Status Card - Auto Refresh */}
+            <TransactionStatus initialOrder={order} />
 
             {/* Payment Instructions */}
             {order.paymentStatus === "PENDING" && paymentGuide && (
@@ -147,57 +148,7 @@ export default async function TransactionDetailPage({ params }: PageProps) {
               />
             )}
 
-            {/* Payment Success & Digiflazz Success - Full Success */}
-            {order.paymentStatus === "LUNAS" && order.digiflazzStatus === "SUCCESS" && (
-              <Card className="bg-emerald-500/10 rounded-3xl overflow-hidden shadow-2xl border border-emerald-500/30">
-                <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 bg-emerald-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <CheckCircle2 className="w-8 h-8 text-emerald-500" />
-                  </div>
-                  <h3 className="text-xl font-black text-emerald-400 uppercase tracking-tight mb-2">
-                    Pembayaran Berhasil & Diamond Terkirim!
-                  </h3>
-                  <p className="text-slate-400 text-sm">
-                    Item sudah masuk ke akun Anda. Terima kasih!
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Payment Success but Digiflazz still Processing - In Progress */}
-            {order.paymentStatus === "LUNAS" && order.digiflazzStatus === "PROCESSING" && (
-              <Card className="bg-amber-500/10 rounded-3xl overflow-hidden shadow-2xl border border-amber-500/30">
-                <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 bg-amber-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <Loader2 className="w-8 h-8 text-amber-500 animate-spin" />
-                  </div>
-                  <h3 className="text-xl font-black text-amber-400 uppercase tracking-tight mb-2">
-                    Pesanan Sedang Dikirim
-                  </h3>
-                  <p className="text-slate-400 text-sm">
-                    Pembayaran berhasil! Item sedang dikirim ke akun Anda...
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-
-            {/* Expired State */}
-            {order.paymentStatus === "EXPIRED" && (
-              <Card className="bg-red-500/10 rounded-3xl overflow-hidden shadow-2xl border border-red-500/30">
-                <CardContent className="p-8 text-center">
-                  <div className="w-16 h-16 bg-red-500/20 rounded-full flex items-center justify-center mx-auto mb-4">
-                    <AlertCircle className="w-8 h-8 text-red-500" />
-                  </div>
-                  <h3 className="text-xl font-black text-red-400 uppercase tracking-tight mb-2">
-                    Pembayaran Kadaluarsa
-                  </h3>
-                  <p className="text-slate-400 text-sm">
-                    Waktu pembayaran telah habis. Silakan buat pesanan baru.
-                  </p>
-                </CardContent>
-              </Card>
-            )}
-
+            {/* Need Help */}
             <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6">
               <h4 className="text-white font-bold text-sm mb-4 flex items-center gap-2">
                 <AlertCircle className="w-4 h-4 text-blue-500" />
