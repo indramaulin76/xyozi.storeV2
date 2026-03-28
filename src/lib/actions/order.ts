@@ -13,10 +13,11 @@ interface CreateOrderParams {
   zoneId?: string
   productId: string
   paymentMethod: string
+  customerPhone?: string
 }
 
 export async function createOrder(data: CreateOrderParams) {
-  const { userGameId, zoneId, productId, paymentMethod } = data
+  const { userGameId, zoneId, productId, paymentMethod, customerPhone } = data
 
   if (!userGameId || !productId || !paymentMethod) {
     return { success: false, error: 'Data tidak lengkap' }
@@ -54,6 +55,7 @@ export async function createOrder(data: CreateOrderParams) {
       digiflazzStatus: 'PENDING',
       paymentMethod,
       paymentFee: feeCalculation.totalFee,
+      customerPhone: customerPhone || null,
     }
   })
 

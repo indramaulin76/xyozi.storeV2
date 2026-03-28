@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
+import { sendWhatsAppNotification } from '@/lib/whatsapp';
 
 export async function POST(request: NextRequest) {
   try {
@@ -33,6 +34,13 @@ export async function POST(request: NextRequest) {
 
     const order = await prisma.order.findUnique({
       where: { referenceId: refId },
+      include: {
+        product: {
+          include: {
+            category: true
+          }
+        }
+      }
     });
 
     if (!order) {
@@ -69,6 +77,21 @@ export async function POST(request: NextRequest) {
         digiflazzMessage: message || order.digiflazzMessage, // Update pesan
       },
     });
+
+    // Kirim WhatsApp notification jika status SUCCESS dan nomor tersedia
+    if (internalStatus === 'SUCCESS' && order.customerPhone) {
+      const waResult = await sendWhatsAppNotification({
+        phoneNumber: order.customerPhone,
+        customerName: 'Pelanggan',
+        invoiceNumber: order.referenceId,
+        productName: order.product.name,
+        serialNumber: sn || order.serialNumber,
+      });
+      
+      if (!waResult.success) {
+        console.warn(`[Webhook Digiflazz] Gagal kirim WhatsApp untuk order ${order.id}:`, waResult.error);
+      }
+    }
 
     return NextResponse.json({
       success: true,

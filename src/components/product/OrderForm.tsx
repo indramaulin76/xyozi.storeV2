@@ -14,7 +14,8 @@ import {
   Gem,
   User,
   Server,
-  CreditCard
+  CreditCard,
+  Phone
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { createOrder } from "@/lib/actions/order";
@@ -49,6 +50,7 @@ export default function OrderForm({ category }: OrderFormProps) {
   const [selectedPaymentId, setSelectedPaymentId] = useState("QRIS");
   const [userGameId, setUserGameId] = useState("");
   const [zoneId, setZoneId] = useState("");
+  const [customerPhone, setCustomerPhone] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
   const [activeTab, setActiveTab] = useState("all");
   const [totalPayment, setTotalPayment] = useState(0);
@@ -119,12 +121,18 @@ export default function OrderForm({ category }: OrderFormProps) {
       return;
     }
 
+    if (!customerPhone) {
+      alert("Harap masukkan nomor WhatsApp untuk notifikasi pesanan!");
+      return;
+    }
+
     setLoading(true);
     const result = await createOrder({
       userGameId,
       zoneId,
       productId: selectedProductId,
       paymentMethod: selectedPaymentId,
+      customerPhone,
     });
     setLoading(false);
 
@@ -225,6 +233,24 @@ export default function OrderForm({ category }: OrderFormProps) {
                   />
                 </div>
               )}
+
+              {/* WhatsApp Number Input */}
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                  <Phone className="w-4 h-4" />
+                  Nomor WhatsApp *
+                </label>
+                <Input 
+                  placeholder="Contoh: 081234567890"
+                  className="bg-slate-900 border-slate-700 h-12 rounded-xl text-white font-mono focus:ring-yellow-500 focus:border-yellow-500"
+                  value={customerPhone}
+                  onChange={(e) => setCustomerPhone(e.target.value)}
+                  disabled={loading}
+                />
+                <p className="text-[10px] text-slate-500">
+                  Needed untuk mengirim notifikasi pesanan
+                </p>
+              </div>
             </div>
             
             <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-xl p-4 flex items-start gap-3">
@@ -440,7 +466,7 @@ export default function OrderForm({ category }: OrderFormProps) {
             <div className="px-6 pb-6">
               <button 
                 onClick={handleSubmit}
-                disabled={!selectedProductId || !selectedPaymentId || !userGameId || loading}
+                disabled={!selectedProductId || !selectedPaymentId || !userGameId || !customerPhone || loading}
                 className="w-full bg-yellow-500 hover:bg-yellow-400 disabled:bg-slate-700 disabled:text-slate-500 text-black font-black py-4 rounded-xl transition-all shadow-lg shadow-yellow-500/30 flex items-center justify-center gap-2"
               >
                 {loading ? (

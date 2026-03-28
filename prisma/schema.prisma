@@ -67,6 +67,7 @@ model Order {
   digiflazzStatus String @default("PENDING") // PENDING, PROCESSING, SUCCESS, FAILED
   amount        Float
   paymentFee    Float?   // Biaya admin total (fee Sukurupiah + fixed fee)
+  customerPhone String?  // Nomor WhatsApp pelanggan untuk notifikasi
   
   // Sukurupiah Payment Gateway Fields
   sakurupiahTrxId    String?   // trx_id dari Sukurupiah

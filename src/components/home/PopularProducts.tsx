@@ -12,10 +12,10 @@ interface PopularProduct {
   sellPrice: number;
   imageUrl: string | null;
   orderCount: number;
-  category: {
+  category?: {
     name: string;
     slug: string;
-  };
+  } | null;
 }
 
 interface PopularProductsProps {
@@ -49,7 +49,7 @@ export default function PopularProducts({ initialProducts }: PopularProductsProp
           {products.map((item) => (
             <Link 
               key={item.id} 
-              href={`/produk/${item.category.slug}`} 
+              href={`/produk/${item.category?.slug || 'umum'}`} 
               className="snap-start shrink-0 w-[140px] md:w-[180px] group"
             >
               <div className="bg-slate-900 border-2 border-slate-700 rounded-xl p-3 md:p-4 transition-all duration-300 group-hover:border-yellow-500 shadow-xl">

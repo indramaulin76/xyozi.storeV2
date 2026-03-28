@@ -2,10 +2,11 @@ import React from "react";
 import { getOrderByReference } from "@/lib/actions/order";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CheckCircle2, Clock, AlertCircle, QrCode, CreditCard, Copy, ArrowLeft, ExternalLink } from "lucide-react";
+import { CheckCircle2, AlertCircle, QrCode, CreditCard, Copy, ArrowLeft, ExternalLink, Clock } from "lucide-react";
 import Link from "next/link";
 import { getPaymentMethod, formatPaymentGuide } from "@/lib/payment-methods";
 import { PaymentStatusClient } from "./PaymentStatusClient";
+import { StatusPollingClient } from "./StatusPollingClient";
 
 interface PageProps {
   params: Promise<{ id: string }>;
@@ -112,40 +113,7 @@ export default async function TransactionDetailPage({ params }: PageProps) {
               </CardContent>
             </Card>
 
-            <Card className="bg-slate-900 border-slate-800 rounded-3xl overflow-hidden shadow-2xl">
-              <CardHeader className="border-b border-slate-800/50 bg-slate-900/50 p-6">
-                <CardTitle className="text-lg font-bold text-white uppercase tracking-wider flex items-center gap-2">
-                  <Clock className="w-5 h-5 text-amber-500" />
-                  Status Pengiriman
-                </CardTitle>
-              </CardHeader>
-              <CardContent className="p-6">
-                <div className="flex items-center gap-4">
-                  <div className={`w-12 h-12 rounded-2xl flex items-center justify-center ${
-                    order.digiflazzStatus === "SUCCESS" ? "bg-emerald-500/10 text-emerald-500" :
-                    order.digiflazzStatus === "PROCESSING" ? "bg-blue-500/10 text-blue-500 animate-pulse" :
-                    order.digiflazzStatus === "FAILED" ? "bg-red-500/10 text-red-500" :
-                    "bg-slate-800 text-slate-500"
-                  }`}>
-                    <CheckCircle2 className="w-6 h-6" />
-                  </div>
-                  <div>
-                    <p className="text-white font-bold uppercase tracking-tight">
-                      {order.digiflazzStatus === "PENDING" ? "Menunggu Pembayaran" :
-                       order.digiflazzStatus === "PROCESSING" ? "Pesanan Sedang Diproses" :
-                       order.digiflazzStatus === "SUCCESS" ? "Pesanan Selesai Dikirim" :
-                       "Pengiriman Gagal"}
-                    </p>
-                    <p className="text-slate-400 text-xs mt-0.5">
-                      {order.digiflazzStatus === "PENDING" ? "Status akan diperbarui setelah pembayaran diverifikasi." :
-                       order.digiflazzStatus === "PROCESSING" ? "Mohon tunggu sebentar, item sedang dikirim ke akun Anda." :
-                       order.digiflazzStatus === "SUCCESS" ? "Item telah berhasil masuk ke akun Anda. Terima kasih!" :
-                       "Terjadi kendala saat pengiriman. Silakan hubungi admin."}
-                    </p>
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <StatusPollingClient initialOrder={order} />
 
             {/* Payment Instructions */}
             {order.paymentStatus === "PENDING" && paymentGuide && (
