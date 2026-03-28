@@ -15,7 +15,9 @@ import {
   User,
   Server,
   CreditCard,
-  Phone
+  Phone,
+  Ticket,
+  X
 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { createOrder } from "@/lib/actions/order";
@@ -55,6 +57,15 @@ export default function OrderForm({ category }: OrderFormProps) {
   const [activeTab, setActiveTab] = useState("all");
   const [totalPayment, setTotalPayment] = useState(0);
   const [totalFee, setTotalFee] = useState(0);
+  
+  // Voucher state
+  const [voucherCode, setVoucherCode] = useState("");
+  const [voucherData, setVoucherData] = useState<{
+    code: string;
+    discount: { price: number; admin: number; total: number };
+  } | null>(null);
+  const [voucherLoading, setVoucherLoading] = useState(false);
+  const [voucherError, setVoucherError] = useState("");
 
   const isGame = category.menuSection === "topup";
 
@@ -115,6 +126,40 @@ export default function OrderForm({ category }: OrderFormProps) {
     }
   };
 
+  const validateVoucher = async () => {
+    if (!voucherCode.trim()) return;
+    
+    setVoucherLoading(true);
+    setVoucherError("");
+    
+    try {
+      const amount = (selectedProduct?.sellPrice || 0) + totalFee;
+      const res = await fetch(`/api/voucher/${voucherCode}?amount=${amount}`);
+      const data = await res.json();
+      
+      if (data.valid) {
+        setVoucherData({
+          code: data.voucher.code,
+          discount: data.discount,
+        });
+      } else {
+        setVoucherError(data.error);
+        setVoucherData(null);
+      }
+    } catch (error) {
+      setVoucherError("Gagal validasi voucher");
+      setVoucherData(null);
+    } finally {
+      setVoucherLoading(false);
+    }
+  };
+
+  const removeVoucher = () => {
+    setVoucherCode("");
+    setVoucherData(null);
+    setVoucherError("");
+  };
+
   const handleSubmit = async () => {
     if (!selectedProductId || !selectedPaymentId || !userGameId) {
       alert("Harap lengkapi semua data pesanan!");
@@ -133,6 +178,8 @@ export default function OrderForm({ category }: OrderFormProps) {
       productId: selectedProductId,
       paymentMethod: selectedPaymentId,
       customerPhone,
+      voucherCode: voucherData?.code,
+      discountAmount: voucherData?.discount.total,
     });
     setLoading(false);
 
@@ -141,7 +188,9 @@ export default function OrderForm({ category }: OrderFormProps) {
     }
   };
 
-  const displayTotal = totalPayment > 0 ? totalPayment : (selectedProduct?.sellPrice || 0);
+  const baseTotal = totalPayment > 0 ? totalPayment : (selectedProduct?.sellPrice || 0);
+  const discountTotal = voucherData?.discount.total || 0;
+  const displayTotal = Math.max(0, baseTotal - discountTotal);
   const displayFee = totalFee;
 
   const gameTabs = [
@@ -449,6 +498,61 @@ export default function OrderForm({ category }: OrderFormProps) {
                   <span className="text-xs text-slate-400">Biaya Admin</span>
                   <span className="text-sm text-white">Rp {displayFee.toLocaleString("id-ID")}</span>
                 </div>
+                
+                {/* Voucher Input */}
+                {!voucherData ? (
+                  <div className="mt-3">
+                    <div className="flex gap-2">
+                      <Input 
+                        placeholder="Kode Voucher"
+                        value={voucherCode}
+                        onChange={(e) => setVoucherCode(e.target.value.toUpperCase())}
+                        className="bg-slate-800 border-slate-700 h-10 rounded-xl text-white font-mono text-sm"
+                      />
+                      <button
+                        type="button"
+                        onClick={validateVoucher}
+                        disabled={!voucherCode.trim() || voucherLoading}
+                        className="px-3 bg-yellow-500 hover:bg-yellow-400 disabled:bg-slate-700 disabled:text-slate-500 text-black font-bold rounded-xl transition-colors"
+                      >
+                        {voucherLoading ? <Loader2 className="w-4 h-4 animate-spin" /> : <CheckCircle2 className="w-4 h-4" />}
+                      </button>
+                    </div>
+                    {voucherError && (
+                      <p className="text-xs text-red-400 mt-1">{voucherError}</p>
+                    )}
+                  </div>
+                ) : (
+                  <div className="mt-3 bg-emerald-500/10 border border-emerald-500/30 rounded-xl p-3">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <Ticket className="w-4 h-4 text-emerald-500" />
+                        <span className="text-xs font-bold text-emerald-400">{voucherData.code}</span>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={removeVoucher}
+                        className="p-1 hover:bg-emerald-500/20 rounded"
+                      >
+                        <X className="w-4 h-4 text-emerald-400" />
+                      </button>
+                    </div>
+                    <div className="mt-2 space-y-1">
+                      {voucherData.discount.price > 0 && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] text-slate-400">Diskon Harga</span>
+                          <span className="text-xs text-emerald-400">-Rp {voucherData.discount.price.toLocaleString("id-ID")}</span>
+                        </div>
+                      )}
+                      {voucherData.discount.admin > 0 && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-[10px] text-slate-400">Diskon Admin</span>
+                          <span className="text-xs text-emerald-400">-Rp {voucherData.discount.admin.toLocaleString("id-ID")}</span>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {/* Total */}

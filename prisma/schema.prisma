@@ -68,6 +68,8 @@ model Order {
   amount        Float
   paymentFee    Float?   // Biaya admin total (fee Sukurupiah + fixed fee)
   customerPhone String?  // Nomor WhatsApp pelanggan untuk notifikasi
+  voucherCode   String?  // Kode voucher yang digunakan
+  discountAmount Float?  // Total besar diskon
   
   // Sukurupiah Payment Gateway Fields
   sakurupiahTrxId    String?   // trx_id dari Sukurupiah
@@ -98,6 +100,22 @@ model ErrorLog {
   id          String   @id @default(cuid())
   service     String   // Digiflazz, Sukurupiah, System
   message     String   @db.Text
-  responseBody String? @db.LongText
+  responseBody String?  @db.LongText
   createdAt   DateTime @default(now())
+}
+
+model Voucher {
+  id              String    @id @default(cuid())
+  code            String    @unique
+  type            String    @default("BOTH")  // PRICE, ADMIN, BOTH
+  discountPrice   Float     @default(0)      // Diskon harga (Rp)
+  discountPercent Float     @default(0)       // Diskon persentase (%)
+  discountAdmin   Float     @default(0)       // Diskon admin fee (Rp)
+  minTransaction  Float     @default(0)
+  maxUses         Int       @default(0)       // 0 = unlimited
+  usedCount       Int       @default(0)
+  isActive        Boolean   @default(true)
+  expiredAt       DateTime?
+  createdAt       DateTime  @default(now())
+  updatedAt       DateTime  @updatedAt
 }

@@ -13,7 +13,8 @@ import {
   ChevronRight,
   AlertCircle,
   Zap,
-  Star
+  Star,
+  Ticket
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
 
@@ -56,6 +57,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     { name: "Flash Sale", href: "/admin/flash-sale", icon: <Zap size={20} /> },
     { name: "Produk Populer", href: "/admin/produk-populer", icon: <Star size={20} /> },
     { name: "Pesanan", href: "/admin/pesanan", icon: <ClipboardList size={20} /> },
+    { name: "Voucher", href: "/admin/voucher", icon: <Ticket size={20} /> },
     { name: "Error Log", href: "/admin/logs", icon: <AlertCircle size={20} /> },
     { name: "Pengaturan", href: "/admin/pengaturan", icon: <Settings size={20} /> },
   ];

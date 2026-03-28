@@ -14,10 +14,12 @@ interface CreateOrderParams {
   productId: string
   paymentMethod: string
   customerPhone?: string
+  voucherCode?: string
+  discountAmount?: number
 }
 
 export async function createOrder(data: CreateOrderParams) {
-  const { userGameId, zoneId, productId, paymentMethod, customerPhone } = data
+  const { userGameId, zoneId, productId, paymentMethod, customerPhone, voucherCode, discountAmount } = data
 
   if (!userGameId || !productId || !paymentMethod) {
     return { success: false, error: 'Data tidak lengkap' }
@@ -56,24 +58,35 @@ export async function createOrder(data: CreateOrderParams) {
       paymentMethod,
       paymentFee: feeCalculation.totalFee,
       customerPhone: customerPhone || null,
+      voucherCode: voucherCode || null,
+      discountAmount: discountAmount || 0,
     }
   })
 
+  // Increment voucher usage if voucher was used
+  if (voucherCode) {
+    await prisma.voucher.update({
+      where: { code: voucherCode },
+      data: { usedCount: { increment: 1 } }
+    })
+  }
+
   let invoice;
   try {
-    // 2. Buat Invoice ke Payment Gateway
+    // 2. Buat Invoice ke Payment Gateway (dengan diskon)
+    const totalPaymentWithDiscount = Math.max(0, feeCalculation.totalPayment - (discountAmount || 0));
     invoice = await createPaymentInvoice({
       method: paymentMethod,
       name: 'Customer',
       phone: '081234567890',
-      amount: feeCalculation.totalPayment,
+      amount: totalPaymentWithDiscount,
       merchantRef: referenceId,
       expired: 24,
       products: [
         {
           name: product.name,
           qty: 1,
-          price: product.sellPrice,
+          price: Math.max(0, product.sellPrice - (discountAmount || 0)),
         },
       ],
       callbackUrl: `${BASE_URL}/api/webhook/sukurupiah`,
