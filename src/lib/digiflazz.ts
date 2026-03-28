@@ -218,12 +218,8 @@ export async function purchaseProduct(params: PurchaseParams): Promise<Digiflazz
     customer_no: customerNo,
     ref_id: refId,
     sign,
+    testing: settings.testing, // Kirim `false` secara eksplisit
   };
-
-  // Hanya kirim testing=true jika memang mode dev. Jangan kirim testing sama sekali jika false.
-  if (settings.testing) {
-    requestBody.testing = true;
-  }
 
   if (zoneId) {
     requestBody.zone_id = zoneId;
