@@ -71,7 +71,12 @@ export async function getRecentOrders(limit: number = 5) {
   }
 }
 
+import { getWebsiteSettings } from "./settings"
+import crypto from 'crypto'
+
 export async function checkSystemStatus() {
+  const settings = await getWebsiteSettings()
+  
   const status = {
     database: { status: 'Unknown', color: 'text-slate-400' },
     digiflazz: { status: 'Unknown', color: 'text-slate-400' },
@@ -87,47 +92,65 @@ export async function checkSystemStatus() {
     status.database = { status: 'Disconnected', color: 'text-red-500' }
   }
 
-  // Check Digiflazz
+  // Check Digiflazz (Cek Saldo untuk memastikan API Key benar)
   try {
-    const res = await fetch('https://api.digiflazz.com/v1/ping', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        username: process.env.DIGIFLAZZ_USERNAME,
-        sign: process.env.DIGIFLAZZ_SIGN
-      }),
-      cache: 'no-store'
-    })
-    if (res.ok) {
-      status.digiflazz = { status: 'Connected', color: 'text-green-500' }
+    if (!settings.digiflazzUsername || !settings.digiflazzApiKey) {
+      status.digiflazz = { status: 'Not Configured', color: 'text-yellow-500' }
     } else {
-      status.digiflazz = { status: 'Error', color: 'text-red-500' }
+      const sign = crypto.createHash('md5').update(`${settings.digiflazzUsername}${settings.digiflazzApiKey}depo`).digest('hex');
+      const res = await fetch(`${settings.digiflazzEndpoint}/cek-saldo`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          cmd: 'deposit',
+          username: settings.digiflazzUsername,
+          sign: sign
+        }),
+        cache: 'no-store'
+      })
+      const data = await res.json()
+      if (res.ok && data.data && data.data.status !== 'Gagal') {
+        status.digiflazz = { status: 'Connected', color: 'text-green-500' }
+      } else {
+        status.digiflazz = { status: 'Error', color: 'text-red-500' }
+      }
     }
   } catch {
     status.digiflazz = { status: 'Offline', color: 'text-red-500' }
   }
 
-  // Check Sukurupiah
+  // Check Sukurupiah (Cek Balance)
   try {
-    const res = await fetch(`${process.env.SUKURUPIAH_URL}/balance`, {
-      method: 'GET',
-      headers: {
-        'X-API-ID': process.env.SUKURUPIAH_API_ID || '',
-        'X-API-KEY': process.env.SUKURUPIAH_API_KEY || ''
-      },
-      cache: 'no-store'
-    })
-    if (res.ok) {
-      status.sukurupiah = { status: 'Connected', color: 'text-green-500' }
+    if (!settings.sukurupiahApiId || !settings.sukurupiahApiKey) {
+      status.sukurupiah = { status: 'Not Configured', color: 'text-yellow-500' }
     } else {
-      status.sukurupiah = { status: 'Error', color: 'text-yellow-500' }
+      const formData = new URLSearchParams({
+        api_id: settings.sukurupiahApiId,
+        method: 'balance',
+      });
+
+      const res = await fetch(`${settings.sukurupiahEndpoint}check_balance.php`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${settings.sukurupiahApiKey}`,
+          'Content-Type': 'application/x-www-form-urlencoded',
+        },
+        body: formData.toString(),
+        cache: 'no-store'
+      })
+      const data = await res.json()
+      if (res.ok && data.status === '200') {
+        status.sukurupiah = { status: 'Connected', color: 'text-green-500' }
+      } else {
+        status.sukurupiah = { status: 'Error', color: 'text-yellow-500' }
+      }
     }
   } catch {
     status.sukurupiah = { status: 'Offline', color: 'text-red-500' }
   }
 
   // Server Mode
-  const isSandbox = process.env.DIGIFLAZZ_TESTING === 'true'
+  const isSandbox = settings.digiflazzTesting
   status.serverMode = {
     status: isSandbox ? 'Sandbox' : 'Production',
     color: isSandbox ? 'text-yellow-500' : 'text-blue-500'

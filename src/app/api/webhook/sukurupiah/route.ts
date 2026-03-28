@@ -3,8 +3,6 @@ import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import { processTopUpAfterPayment } from '@/lib/digiflazz';
 
-const API_KEY = process.env.SUKURUPIAH_API_KEY!;
-
 interface WebhookPayload {
   trx_id: string;
   merchant_ref: string;
@@ -14,6 +12,11 @@ interface WebhookPayload {
 
 export async function POST(request: NextRequest) {
   try {
+    const settings = await prisma.settings.findUnique({
+      where: { key: 'sukurupiah_api_key' }
+    });
+    const API_KEY = settings?.value || process.env.SUKURUPIAH_API_KEY!;
+
     const payload: WebhookPayload = await request.json();
 
     console.log('[Webhook] Received callback:', JSON.stringify(payload, null, 2));

@@ -1,8 +1,26 @@
 import { createHmac } from 'crypto';
+import { prisma } from './prisma';
 
-const API_ID = process.env.SUKURUPIAH_API_ID!;
-const API_KEY = process.env.SUKURUPIAH_API_KEY!;
-const ENDPOINT = process.env.SUKURUPIAH_ENDPOINT!;
+async function getSukurupiahSettings() {
+  const settings = await prisma.settings.findMany({
+    where: {
+      key: {
+        in: ['sukurupiah_api_id', 'sukurupiah_api_key', 'sukurupiah_endpoint']
+      }
+    }
+  });
+
+  const settingsMap = settings.reduce((acc, s) => {
+    acc[s.key] = s.value;
+    return acc;
+  }, {} as Record<string, string>);
+
+  return {
+    apiId: settingsMap['sukurupiah_api_id'] || process.env.SUKURUPIAH_API_ID || '',
+    apiKey: settingsMap['sukurupiah_api_key'] || process.env.SUKURUPIAH_API_KEY || '',
+    endpoint: settingsMap['sukurupiah_endpoint'] || process.env.SUKURUPIAH_ENDPOINT || '',
+  };
+}
 
 interface CreateInvoiceParams {
   method: string;
@@ -73,18 +91,25 @@ interface CheckBalanceResponse {
   };
 }
 
-export function generateSignature(apiId: string, method: string, merchantRef: string, amount: string): string {
+export async function generateSignature(apiId: string, method: string, merchantRef: string, amount: string): Promise<string> {
+  const settings = await getSukurupiahSettings();
   const dataToSign = `${apiId}${method}${merchantRef}${amount}`;
-  return createHmac('sha256', API_KEY).update(dataToSign).digest('hex');
+  return createHmac('sha256', settings.apiKey).update(dataToSign).digest('hex');
 }
 
 export async function createPaymentInvoice(params: CreateInvoiceParams): Promise<CreateInvoiceResponse> {
   const { method, name, email, phone, amount, merchantRef, expired = 24, products, callbackUrl, returnUrl } = params;
 
-  const signature = generateSignature(API_ID, method, merchantRef, amount.toString());
+  const settings = await getSukurupiahSettings();
+  
+  if (!settings.apiId || !settings.apiKey || !settings.endpoint) {
+    throw new Error("Sukurupiah credentials not found in settings or environment variables.");
+  }
+
+  const signature = await generateSignature(settings.apiId, method, merchantRef, amount.toString());
 
   const formData = new URLSearchParams({
-    api_id: API_ID,
+    api_id: settings.apiId,
     method,
     name,
     email: email || '',
@@ -113,10 +138,10 @@ export async function createPaymentInvoice(params: CreateInvoiceParams): Promise
     signature,
   });
 
-  const response = await fetch(`${ENDPOINT}create.php`, {
+  const response = await fetch(`${settings.endpoint}create.php`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${API_KEY}`,
+      'Authorization': `Bearer ${settings.apiKey}`,
       'Content-Type': 'application/x-www-form-urlencoded',
     },
     body: formData.toString(),
@@ -134,16 +159,18 @@ export async function createPaymentInvoice(params: CreateInvoiceParams): Promise
 }
 
 export async function checkPaymentStatus(trxId: string): Promise<CheckStatusResponse> {
+  const settings = await getSukurupiahSettings();
+
   const formData = new URLSearchParams({
-    api_id: API_ID,
+    api_id: settings.apiId,
     method: 'status',
     trx_id: trxId,
   });
 
-  const response = await fetch(`${ENDPOINT}status-transaction.php`, {
+  const response = await fetch(`${settings.endpoint}status-transaction.php`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${API_KEY}`,
+      'Authorization': `Bearer ${settings.apiKey}`,
       'Content-Type': 'application/x-www-form-urlencoded',
     },
     body: formData.toString(),
@@ -153,15 +180,17 @@ export async function checkPaymentStatus(trxId: string): Promise<CheckStatusResp
 }
 
 export async function checkBalance(): Promise<CheckBalanceResponse> {
+  const settings = await getSukurupiahSettings();
+
   const formData = new URLSearchParams({
-    api_id: API_ID,
+    api_id: settings.apiId,
     method: 'balance',
   });
 
-  const response = await fetch(`${ENDPOINT}check_balance.php`, {
+  const response = await fetch(`${settings.endpoint}check_balance.php`, {
     method: 'POST',
     headers: {
-      'Authorization': `Bearer ${API_KEY}`,
+      'Authorization': `Bearer ${settings.apiKey}`,
       'Content-Type': 'application/x-www-form-urlencoded',
     },
     body: formData.toString(),
@@ -169,5 +198,3 @@ export async function checkBalance(): Promise<CheckBalanceResponse> {
 
   return response.json();
 }
-
-export { API_ID, API_KEY, ENDPOINT };

@@ -1,10 +1,11 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Save, Monitor, Globe, Share2, Phone, FileText, Copyright, Upload, Loader2, Image as ImageIcon, Eye } from "lucide-react";
+import { Save, Monitor, Globe, Share2, Phone, FileText, Copyright, Upload, Loader2, Image as ImageIcon, Eye, Cpu, ShieldCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
+import { Switch } from "@/components/ui/switch";
 import { getWebsiteSettings, updateWebsiteSettings } from "@/lib/actions/settings";
 
 interface WebsiteSettings {
@@ -27,6 +28,15 @@ interface WebsiteSettings {
   pageTermsOfService: string;
   pagePrivacyPolicy: string;
   footerCopyright: string;
+  // API Digiflazz
+  digiflazzUsername: string;
+  digiflazzApiKey: string;
+  digiflazzEndpoint: string;
+  digiflazzTesting: boolean;
+  // API Sukurupiah
+  sukurupiahApiId: string;
+  sukurupiahApiKey: string;
+  sukurupiahEndpoint: string;
 }
 
 export default function AdminPengaturanPage() {
@@ -58,6 +68,13 @@ export default function AdminPengaturanPage() {
     pageTermsOfService: "",
     pagePrivacyPolicy: "",
     footerCopyright: "© " + currentYear + " Xyozi Store. All rights reserved.",
+    digiflazzUsername: "",
+    digiflazzApiKey: "",
+    digiflazzEndpoint: "https://api.digiflazz.com/v1",
+    digiflazzTesting: false,
+    sukurupiahApiId: "",
+    sukurupiahApiKey: "",
+    sukurupiahEndpoint: "https://sukurupiah.com/api/",
   });
 
   useEffect(() => {
@@ -192,8 +209,11 @@ export default function AdminPengaturanPage() {
             <button onClick={() => setActiveTab("halaman")} className={`px-5 py-3 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 border-r border-slate-700 ${activeTab === "halaman" ? "bg-yellow-500 text-black" : "text-slate-400 hover:text-white hover:bg-slate-800"}`}>
               <FileText size={16} /> Halaman
             </button>
-            <button onClick={() => setActiveTab("footer")} className={`px-5 py-3 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${activeTab === "footer" ? "bg-yellow-500 text-black" : "text-slate-400 hover:text-white hover:bg-slate-800"}`}>
+            <button onClick={() => setActiveTab("footer")} className={`px-5 py-3 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 border-r border-slate-700 ${activeTab === "footer" ? "bg-yellow-500 text-black" : "text-slate-400 hover:text-white hover:bg-slate-800"}`}>
               <Copyright size={16} /> Footer
+            </button>
+            <button onClick={() => setActiveTab("api")} className={`px-5 py-3 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 ${activeTab === "api" ? "bg-yellow-500 text-black" : "text-slate-400 hover:text-white hover:bg-slate-800"}`}>
+              <Cpu size={16} /> API Provider
             </button>
           </div>
         </div>
@@ -508,6 +528,99 @@ export default function AdminPengaturanPage() {
                       {settings.contactWhatsApp && <span>WhatsApp</span>}
                     </div>
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          </div>
+        )}
+
+        {activeTab === "api" && (
+          <div className="bg-slate-900 border border-slate-800 border-t-0 rounded-b-xl overflow-hidden p-6 space-y-6">
+            {/* Digiflazz Settings */}
+            <Card className="bg-slate-900 border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+              <div className="px-6 py-4 border-b border-slate-800 bg-slate-800/30 flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <Cpu size={18} className="text-yellow-500" />
+                  <h3 className="font-bold text-white text-sm uppercase">Digiflazz API</h3>
+                </div>
+                <div className="flex items-center gap-2">
+                  <span className="text-[10px] font-black text-slate-500 uppercase tracking-widest">Testing Mode</span>
+                  <Switch 
+                    checked={settings.digiflazzTesting} 
+                    onCheckedChange={(checked) => setSettings(prev => ({ ...prev, digiflazzTesting: checked }))}
+                  />
+                </div>
+              </div>
+              <CardContent className="p-6 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">Username</label>
+                    <Input 
+                      className="bg-slate-950 border-slate-800 rounded-xl" 
+                      placeholder="Username Digiflazz" 
+                      value={settings.digiflazzUsername} 
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("digiflazzUsername", e.target.value)} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">API Key (Production/Dev)</label>
+                    <Input 
+                      type="password"
+                      className="bg-slate-950 border-slate-800 rounded-xl" 
+                      placeholder="Digiflazz API Key" 
+                      value={settings.digiflazzApiKey} 
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("digiflazzApiKey", e.target.value)} 
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">API Endpoint</label>
+                  <Input 
+                    className="bg-slate-950 border-slate-800 rounded-xl" 
+                    placeholder="https://api.digiflazz.com/v1" 
+                    value={settings.digiflazzEndpoint} 
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("digiflazzEndpoint", e.target.value)} 
+                  />
+                </div>
+              </CardContent>
+            </Card>
+
+            {/* Sukurupiah Settings */}
+            <Card className="bg-slate-900 border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+              <div className="px-6 py-4 border-b border-slate-800 bg-slate-800/30 flex items-center gap-3">
+                <ShieldCheck size={18} className="text-blue-500" />
+                <h3 className="font-bold text-white text-sm uppercase">Sukurupiah Payment Gateway</h3>
+              </div>
+              <CardContent className="p-6 space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">API ID</label>
+                    <Input 
+                      className="bg-slate-950 border-slate-800 rounded-xl" 
+                      placeholder="Sukurupiah API ID" 
+                      value={settings.sukurupiahApiId} 
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("sukurupiahApiId", e.target.value)} 
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">API Key</label>
+                    <Input 
+                      type="password"
+                      className="bg-slate-950 border-slate-800 rounded-xl" 
+                      placeholder="Sukurupiah API Key" 
+                      value={settings.sukurupiahApiKey} 
+                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("sukurupiahApiKey", e.target.value)} 
+                    />
+                  </div>
+                </div>
+                <div className="space-y-2">
+                  <label className="text-[10px] font-black text-slate-500 uppercase tracking-widest ml-1">API Endpoint</label>
+                  <Input 
+                    className="bg-slate-950 border-slate-800 rounded-xl" 
+                    placeholder="https://sukurupiah.com/api/" 
+                    value={settings.sukurupiahEndpoint} 
+                    onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("sukurupiahEndpoint", e.target.value)} 
+                  />
                 </div>
               </CardContent>
             </Card>

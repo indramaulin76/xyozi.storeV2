@@ -23,6 +23,15 @@ interface WebsiteSettings {
   pageTermsOfService: string
   pagePrivacyPolicy: string
   footerCopyright: string
+  // API Digiflazz
+  digiflazzUsername: string
+  digiflazzApiKey: string
+  digiflazzEndpoint: string
+  digiflazzTesting: boolean
+  // API Sukurupiah
+  sukurupiahApiId: string
+  sukurupiahApiKey: string
+  sukurupiahEndpoint: string
 }
 
 export async function getWebsiteSettings(): Promise<WebsiteSettings> {
@@ -54,6 +63,14 @@ export async function getWebsiteSettings(): Promise<WebsiteSettings> {
       pageTermsOfService: settingsMap["page_tos"] || "",
       pagePrivacyPolicy: settingsMap["page_privacy"] || "",
       footerCopyright: settingsMap["footer_copyright"] || `© ${new Date().getFullYear()} Xyozi Store. All rights reserved.`,
+      // API Settings
+      digiflazzUsername: settingsMap["digiflazz_username"] || "",
+      digiflazzApiKey: settingsMap["digiflazz_api_key"] || "",
+      digiflazzEndpoint: settingsMap["digiflazz_endpoint"] || "https://api.digiflazz.com/v1",
+      digiflazzTesting: settingsMap["digiflazz_testing"] === "true",
+      sukurupiahApiId: settingsMap["sukurupiah_api_id"] || "",
+      sukurupiahApiKey: settingsMap["sukurupiah_api_key"] || "",
+      sukurupiahEndpoint: settingsMap["sukurupiah_endpoint"] || "https://sukurupiah.com/api/",
     }
   } catch (error) {
     console.error("Error fetching website settings:", error)
@@ -77,6 +94,13 @@ export async function getWebsiteSettings(): Promise<WebsiteSettings> {
       pageTermsOfService: "",
       pagePrivacyPolicy: "",
       footerCopyright: `© ${new Date().getFullYear()} Xyozi Store. All rights reserved.`,
+      digiflazzUsername: "",
+      digiflazzApiKey: "",
+      digiflazzEndpoint: "https://api.digiflazz.com/v1",
+      digiflazzTesting: false,
+      sukurupiahApiId: "",
+      sukurupiahApiKey: "",
+      sukurupiahEndpoint: "https://sukurupiah.com/api/",
     }
   }
 }
@@ -122,6 +146,16 @@ export async function updateWebsiteSettings(data: Partial<WebsiteSettings>): Pro
     if (data.pageTermsOfService !== undefined) updates.push({ key: "page_tos", value: data.pageTermsOfService })
     if (data.pagePrivacyPolicy !== undefined) updates.push({ key: "page_privacy", value: data.pagePrivacyPolicy })
     if (data.footerCopyright !== undefined) updates.push({ key: "footer_copyright", value: data.footerCopyright })
+    
+    // API Settings
+    if (data.digiflazzUsername !== undefined) updates.push({ key: "digiflazz_username", value: data.digiflazzUsername })
+    if (data.digiflazzApiKey !== undefined) updates.push({ key: "digiflazz_api_key", value: data.digiflazzApiKey })
+    if (data.digiflazzEndpoint !== undefined) updates.push({ key: "digiflazz_endpoint", value: data.digiflazzEndpoint })
+    if (data.digiflazzTesting !== undefined) updates.push({ key: "digiflazz_testing", value: data.digiflazzTesting ? "true" : "false" })
+    
+    if (data.sukurupiahApiId !== undefined) updates.push({ key: "sukurupiah_api_id", value: data.sukurupiahApiId })
+    if (data.sukurupiahApiKey !== undefined) updates.push({ key: "sukurupiah_api_key", value: data.sukurupiahApiKey })
+    if (data.sukurupiahEndpoint !== undefined) updates.push({ key: "sukurupiah_endpoint", value: data.sukurupiahEndpoint })
     
     for (const update of updates) {
       await prisma.settings.upsert({

@@ -1,10 +1,27 @@
 import crypto from 'crypto';
 import { prisma } from './prisma';
 
-const USERNAME = process.env.DIGIFLAZZ_USERNAME;
-const API_KEY = process.env.DIGIFLAZZ_DEV_KEY;
-const ENDPOINT = process.env.DIGIFLAZZ_ENDPOINT || 'https://api.digiflazz.com/v1';
-const TESTING = process.env.DIGIFLAZZ_TESTING === 'true';
+async function getDigiflazzSettings() {
+  const settings = await prisma.settings.findMany({
+    where: {
+      key: {
+        in: ['digiflazz_username', 'digiflazz_api_key', 'digiflazz_endpoint', 'digiflazz_testing']
+      }
+    }
+  });
+
+  const settingsMap = settings.reduce((acc, s) => {
+    acc[s.key] = s.value;
+    return acc;
+  }, {} as Record<string, string>);
+
+  return {
+    username: settingsMap['digiflazz_username'] || process.env.DIGIFLAZZ_USERNAME,
+    apiKey: settingsMap['digiflazz_api_key'] || process.env.DIGIFLAZZ_DEV_KEY,
+    endpoint: settingsMap['digiflazz_endpoint'] || process.env.DIGIFLAZZ_ENDPOINT || 'https://api.digiflazz.com/v1',
+    testing: settingsMap['digiflazz_testing'] === 'true' || process.env.DIGIFLAZZ_TESTING === 'true'
+  };
+}
 
 interface DigiflazzProduct {
   buyer_sku_code: string;
@@ -43,21 +60,23 @@ async function fetchPriceList(): Promise<DigiflazzProduct[]> {
     return isFetching;
   }
 
-  if (!USERNAME || !API_KEY) {
-    throw new Error("Digiflazz credentials not found in environment variables.");
+  const settings = await getDigiflazzSettings();
+
+  if (!settings.username || !settings.apiKey) {
+    throw new Error("Digiflazz credentials not found in settings or environment variables.");
   }
 
   const fetchAndCache = async (): Promise<DigiflazzProduct[]> => {
-    const sign = crypto.createHash('md5').update(`${USERNAME}${API_KEY}pricelist`).digest('hex');
+    const sign = crypto.createHash('md5').update(`${settings.username}${settings.apiKey}pricelist`).digest('hex');
 
-    console.log('[Digiflazz] Fetching price list, username:', USERNAME);
+    console.log('[Digiflazz] Fetching price list, username:', settings.username);
 
-    const response = await fetch(`${ENDPOINT}/price-list`, {
+    const response = await fetch(`${settings.endpoint}/price-list`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({
         cmd: 'prepaid',
-        username: USERNAME,
+        username: settings.username,
         sign: sign
       }),
     });
@@ -128,8 +147,9 @@ export async function checkDigiflazzProduct(skuCode: string): Promise<{ exists: 
   }
 }
 
-function generateDigiflazzSign(refId: string): string {
-  const dataToSign = `${USERNAME}${API_KEY}${refId}`;
+async function generateDigiflazzSign(refId: string): Promise<string> {
+  const settings = await getDigiflazzSettings();
+  const dataToSign = `${settings.username}${settings.apiKey}${refId}`;
   return crypto.createHash('md5').update(dataToSign).digest('hex');
 }
 
@@ -161,19 +181,21 @@ interface DigiflazzPurchaseResponse {
 export async function purchaseProduct(params: PurchaseParams): Promise<DigiflazzPurchaseResponse> {
   const { skuCode, customerNo, refId, zoneId } = params;
 
-  if (!USERNAME || !API_KEY) {
-    throw new Error("Digiflazz credentials not found in environment variables.");
+  const settings = await getDigiflazzSettings();
+
+  if (!settings.username || !settings.apiKey) {
+    throw new Error("Digiflazz credentials not found in settings or environment variables.");
   }
 
-  const sign = generateDigiflazzSign(refId);
+  const sign = await generateDigiflazzSign(refId);
 
   const requestBody: Record<string, string | boolean> = {
-    username: USERNAME,
+    username: settings.username,
     buyer_sku_code: skuCode.toLowerCase(),
     customer_no: customerNo,
     ref_id: refId,
     sign,
-    testing: TESTING,
+    testing: settings.testing,
   };
 
   if (zoneId) {
@@ -182,7 +204,7 @@ export async function purchaseProduct(params: PurchaseParams): Promise<Digiflazz
 
   console.log('[Digiflazz] Sending purchase request:', JSON.stringify(requestBody, null, 2));
 
-  const response = await fetch(`${ENDPOINT}/transaction`, {
+  const response = await fetch(`${settings.endpoint}/transaction`, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify(requestBody),
