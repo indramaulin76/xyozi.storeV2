@@ -1,8 +1,47 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { CheckCircle2, AlertCircle, Clock, Loader2 } from "lucide-react";
+import { CheckCircle2, AlertCircle, Clock, Loader2, Copy, Check } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
+
+function CopyButton({ text }: { text: string }) {
+  const [copied, setCopied] = useState(false);
+
+  const handleCopy = async () => {
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2000);
+    } catch (err) {
+      console.error("Failed to copy:", err);
+    }
+  };
+
+  return (
+    <button
+      onClick={handleCopy}
+      className="inline-flex items-center gap-1 bg-emerald-500/20 hover:bg-emerald-500/30 px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
+      title="Klik untuk menyalin"
+    >
+      {copied ? (
+        <Check className="w-3.5 h-3.5 text-emerald-400" />
+      ) : (
+        <Copy className="w-3.5 h-3.5 text-emerald-400" />
+      )}
+      <span className="text-emerald-300 font-mono text-sm font-black">{text}</span>
+      {copied && <span className="text-[10px] text-emerald-400 ml-1">Disalin!</span>}
+    </button>
+  );
+}
+
+function InvoiceDisplay({ referenceId }: { referenceId: string }) {
+  return (
+    <div className="inline-block bg-emerald-500/20 px-4 py-2 rounded-lg">
+      <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">NO. INVOICE</p>
+      <CopyButton text={referenceId} />
+    </div>
+  );
+}
 
 interface OrderData {
   id: string;
@@ -57,6 +96,9 @@ export function TransactionStatus({ initialOrder }: { initialOrder: OrderData })
           <p className="text-slate-400 text-sm">
             Silakan selesaikan pembayaran agar pesanan dapat diproses.
           </p>
+          <div className="mt-4">
+            <InvoiceDisplay referenceId={order.referenceId} />
+          </div>
           {isPolling && (
             <div className="mt-4 flex items-center justify-center gap-2 text-blue-500">
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -81,6 +123,9 @@ export function TransactionStatus({ initialOrder }: { initialOrder: OrderData })
           <p className="text-slate-400 text-sm">
             Pembayaran berhasil! Item sedang dikirim ke akun {order.userGameId}...
           </p>
+          <div className="mt-4">
+            <InvoiceDisplay referenceId={order.referenceId} />
+          </div>
           {isPolling && (
             <div className="mt-4 flex items-center justify-center gap-2 text-amber-500">
               <Loader2 className="w-4 h-4 animate-spin" />
@@ -107,12 +152,7 @@ export function TransactionStatus({ initialOrder }: { initialOrder: OrderData })
           <p className="text-slate-400 text-sm mb-3">
             Item {order.product?.name || 'pesanan'} sudah masuk ke akun {order.userGameId}.
           </p>
-          {order.serialNumber && (
-            <div className="inline-block bg-emerald-500/20 px-4 py-2 rounded-lg">
-              <p className="text-[10px] text-emerald-400 font-bold uppercase tracking-widest">SN / KODE</p>
-              <p className="text-emerald-300 font-mono text-sm font-black">{order.serialNumber}</p>
-            </div>
-          )}
+          <InvoiceDisplay referenceId={order.referenceId} />
         </CardContent>
       </Card>
     );
@@ -131,6 +171,9 @@ export function TransactionStatus({ initialOrder }: { initialOrder: OrderData })
           <p className="text-slate-400 text-sm">
             Waktu pembayaran telah habis. Silakan buat pesanan baru.
           </p>
+          <div className="mt-4">
+            <InvoiceDisplay referenceId={order.referenceId} />
+          </div>
         </CardContent>
       </Card>
     );
@@ -149,6 +192,9 @@ export function TransactionStatus({ initialOrder }: { initialOrder: OrderData })
           <p className="text-slate-400 text-sm">
             Terjadi kendala. Saldo Anda aman, silakan hubungi CS untuk refund atau proses ulang.
           </p>
+          <div className="mt-4">
+            <InvoiceDisplay referenceId={order.referenceId} />
+          </div>
         </CardContent>
       </Card>
     );

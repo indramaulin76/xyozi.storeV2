@@ -108,7 +108,6 @@ export async function POST(request: NextRequest) {
         customerName: 'Pelanggan',
         invoiceNumber: order.referenceId,
         productName: order.product.name,
-        serialNumber: sn || order.serialNumber,
       });
       
       if (!waResult.success) {

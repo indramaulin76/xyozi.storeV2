@@ -70,9 +70,18 @@ export async function sendWhatsAppNotification(params: SendWhatsAppParams): Prom
 
   const formattedPhone = formatPhone(phoneNumber);
 
-  let message = `Halo ${customerName}, Pembayaran pesanan ${invoiceNumber} BERHASIL! Diamond ${productName} sudah masuk ke akun Anda.`;
-  if (serialNumber) message += ` SN: ${serialNumber}.`;
-  message += " Terima kasih sudah order di Xyozi Store!";
+  const today = new Date().toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+  
+  let message = `⚡ *PEMBAYARAN BERHASIL!* ⚡
+
+Halo Kak, pesanan kamu di *Xyozi Store* sudah sukses terkirim!
+
+📝 *No. Invoice:* ${invoiceNumber} (Simpan untuk cek transaksi)
+🎮 *Produk:* ${productName}
+✅ *Status:* SUKSES
+📅 *Tanggal:* ${today}
+
+*Terima kasih telah mempercayai Xyozi Store!* 🚀`;
 
   console.log(`[WhatsApp] Sending to ${formattedPhone}: ${message.substring(0, 50)}...`);
 
