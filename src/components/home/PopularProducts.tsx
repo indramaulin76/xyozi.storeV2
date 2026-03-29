@@ -26,9 +26,10 @@ export default function PopularProducts({ initialProducts }: PopularProductsProp
   const [loading, setLoading] = useState(false);
 
   if (!products || products.length === 0) {
-    console.log("[PopularProducts] No products data:", initialProducts);
     return null;
   }
+
+  const sortedProducts = [...products].sort((a, b) => b.orderCount - a.orderCount);
 
   return (
     <section className="container mx-auto px-4 md:px-8 lg:px-12 py-8">
@@ -46,7 +47,7 @@ export default function PopularProducts({ initialProducts }: PopularProductsProp
         </div>
 
         <div className="flex overflow-x-auto gap-4 md:gap-6 pb-2 no-scrollbar snap-x relative z-10">
-          {products.map((item) => (
+          {sortedProducts.map((item) => (
             <Link 
               key={item.id} 
               href={`/produk/${item.category?.slug || 'umum'}`} 
