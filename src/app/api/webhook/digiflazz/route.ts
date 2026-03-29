@@ -1,7 +1,11 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { prisma } from '@/lib/prisma';
 import crypto from 'crypto';
-import { sendWhatsAppNotification } from '@/lib/whatsapp';
+import { sendWhatsAppNotification, sendAdminNotification } from '@/lib/whatsapp';
+
+function formatPhone(phone: string): string {
+  return phone.replace(/^0/, '62').replace(/\D/g, '');
+}
 
 export async function POST(request: NextRequest) {
   try {
@@ -90,7 +94,23 @@ export async function POST(request: NextRequest) {
       
       if (!waResult.success) {
         console.warn(`[Webhook Digiflazz] Gagal kirim WhatsApp untuk order ${order.id}:`, waResult.error);
+        await sendAdminNotification({
+          type: 'FAILED',
+          invoiceNumber: order.referenceId,
+          customerPhone: formatPhone(order.customerPhone),
+          error: waResult.error || 'Unknown error',
+        });
       }
+    }
+
+    // Kirim notifikasi ke admin jika transaksi GAGAL
+    if (internalStatus === 'FAILED') {
+      await sendAdminNotification({
+        type: 'FAILED',
+        invoiceNumber: order.referenceId,
+        customerPhone: order.customerPhone ? formatPhone(order.customerPhone) : 'N/A',
+        error: `Transaksi GAGAL - ${message || 'Tidak ada pesan'}`,
+      });
     }
 
     return NextResponse.json({
