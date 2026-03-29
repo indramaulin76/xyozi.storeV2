@@ -7,7 +7,6 @@ import {
   CarouselNext,
   CarouselPrevious,
 } from "@/components/ui/carousel";
-import Image from "next/image";
 import Autoplay from "embla-carousel-autoplay";
 import React from "react";
 import { getWebsiteSettings } from "@/lib/actions/settings";
@@ -44,12 +43,10 @@ export default function Hero({ heroBanner }: HeroProps) {
         <CarouselContent>
           <CarouselItem>
             <div className="relative aspect-[3.2/1] w-full min-h-[180px] md:min-h-[300px] lg:min-h-[400px]">
-              <Image
+              <img
                 src={bannerImage}
                 alt="Hero Banner"
-                fill
-                className="object-cover"
-                priority
+                className="w-full h-full object-cover"
               />
             </div>
           </CarouselItem>

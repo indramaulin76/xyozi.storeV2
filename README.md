@@ -24,6 +24,68 @@ Toko top-up game online dengan Next.js 16, Tailwind CSS, dan Shadcn UI.
 - [x] Flash sale
 - [x] SEO meta tags
 
+## Deployment dengan Docker
+
+### Development (Docker Compose)
+
+```bash
+# 1. Copy environment file
+cp .env.docker .env
+
+# 2. Start containers
+docker-compose up -d
+
+# 3. Setup database
+docker-compose exec app npx prisma generate
+docker-compose exec app npx prisma db push
+
+# 4. View logs
+docker-compose logs -f app
+```
+
+### Production (Docker Compose)
+
+```bash
+# 1. Setup environment
+cp .env.docker .env
+nano .env  # Edit credentials
+
+# 2. Update production settings di .env:
+#    - NEXTAUTH_URL=https://appp.indra-casa.my.id
+#    - SUKURUPIAH_CALLBACK_URL=https://appp.indra-casa.my.id/api/webhook/sukurupiah
+
+# 3. Start production stack
+docker-compose -f docker-compose.prod.yml up -d --build
+
+# 4. Setup database
+docker-compose -f docker-compose.prod.yml exec app npx prisma generate
+docker-compose -f docker-compose.prod.yml exec app npx prisma db push
+
+# 5. View logs
+docker-compose -f docker-compose.prod.yml logs -f
+```
+
+### Docker Commands Useful
+
+```bash
+# Stop containers
+docker-compose down
+
+# Rebuild & restart
+docker-compose up -d --build
+
+# View app logs
+docker-compose logs -f app
+
+# Access app shell
+docker-compose exec app sh
+
+# Restart app only
+docker-compose restart app
+```
+
+---
+
 ## Persiapan Deployment
 
 ### 1. Environment Variables

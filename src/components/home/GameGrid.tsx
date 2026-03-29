@@ -1,6 +1,5 @@
 "use client";
 
-import Image from "next/image";
 import Link from "next/link";
 import { Input } from "@/components/ui/input";
 import { Search, Gamepad2, Ticket, Smartphone, Zap, Wifi, Star } from "lucide-react";
@@ -160,12 +159,10 @@ function GameCard({ game, index }: { game: Category, index?: number }) {
       <div className="flex flex-col items-center">
         <div className="relative aspect-square w-full rounded-2xl border-2 border-slate-700 bg-slate-800 group-hover:border-yellow-500 transition-all shadow-lg overflow-hidden">
           {game.logoUrl && game.logoUrl !== "" ? (
-            <Image 
+            <img 
               src={game.logoUrl} 
               alt={game.name} 
-              fill 
-              className="object-cover group-hover:scale-110 transition-transform duration-300" 
-              unoptimized
+              className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-300" 
             />
           ) : (
             <div className="w-full h-full bg-yellow-500/10 flex items-center justify-center text-xl font-black text-yellow-500">

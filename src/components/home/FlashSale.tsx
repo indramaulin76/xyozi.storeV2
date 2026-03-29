@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { Zap, Loader2 } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
@@ -106,7 +105,7 @@ export default function FlashSale({ products, endTime }: FlashSaleProps) {
                 </div>
                 <div className="relative aspect-square w-full rounded-lg mb-3 bg-slate-800 p-1.5">
                   {item.imageUrl ? (
-                    <Image src={item.imageUrl} alt={item.name} fill className="object-cover rounded transition-transform duration-300 group-hover:scale-110" />
+                    <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover rounded transition-transform duration-300 group-hover:scale-110" />
                   ) : (
                     <div className="w-full h-full bg-slate-700 rounded flex items-center justify-center">
                       <Zap className="w-8 h-8 text-slate-500" />

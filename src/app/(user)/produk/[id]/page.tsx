@@ -1,5 +1,4 @@
 import React from "react";
-import Image from "next/image";
 import { Zap, Shield, Gem } from "lucide-react";
 import OrderForm from "@/components/product/OrderForm";
 import { getCategoryBySlug } from "@/lib/actions/category";
@@ -19,13 +18,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
       <div className="bg-slate-900">
         <div className="relative w-full aspect-[4/1] overflow-hidden">
           {category.bannerUrl && category.bannerUrl !== "" ? (
-            <Image 
+            <img 
               src={category.bannerUrl} 
               alt="Game Banner" 
-              fill 
-              className="object-cover object-center"
-              priority
-              unoptimized
+              className="w-full h-full object-cover object-center"
             />
           ) : (
             <div className="w-full h-full bg-gradient-to-br from-slate-800 to-slate-900" />
@@ -37,12 +33,10 @@ export default async function ProductDetailPage({ params }: { params: Promise<{ 
               {/* Game Logo */}
               <div className="relative w-16 h-16 md:w-20 md:h-20 rounded-xl overflow-hidden border-2 border-yellow-500/30 shadow-xl shadow-yellow-500/10 shrink-0 bg-slate-800">
                 {category.logoUrl && category.logoUrl !== "" ? (
-                  <Image 
+                  <img 
                     src={category.logoUrl} 
                     alt={category.name} 
-                    fill 
-                    className="object-cover"
-                    unoptimized
+                    className="w-full h-full object-cover"
                   />
                 ) : (
                   <div className="w-full h-full flex items-center justify-center bg-gradient-to-br from-yellow-500/20 to-slate-800">

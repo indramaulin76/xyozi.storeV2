@@ -1,7 +1,6 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import Image from "next/image";
 import Link from "next/link";
 import { Star, Loader2 } from "lucide-react";
 import { formatRupiah } from "@/lib/utils";
@@ -55,7 +54,7 @@ export default function PopularProducts({ initialProducts }: PopularProductsProp
               <div className="bg-slate-900 border-2 border-slate-700 rounded-xl p-3 md:p-4 transition-all duration-300 group-hover:border-yellow-500 shadow-xl">
                 <div className="relative aspect-square w-full rounded-lg mb-3 bg-slate-800 p-1.5">
                   {item.imageUrl ? (
-                    <Image src={item.imageUrl} alt={item.name} fill className="object-cover rounded transition-transform duration-300 group-hover:scale-110" />
+                    <img src={item.imageUrl} alt={item.name} className="w-full h-full object-cover rounded transition-transform duration-300 group-hover:scale-110" />
                   ) : (
                     <div className="w-full h-full bg-slate-700 rounded flex items-center justify-center">
                       <Star className="w-8 h-8 text-slate-500" />
