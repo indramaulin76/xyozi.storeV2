@@ -16,11 +16,11 @@ export default async function Home() {
     getWebsiteSettings()
   ]);
 
-  console.log("[Home] Fetched data:", {
-    categoriesCount: categories?.length,
-    flashSaleProductsCount: flashSaleProducts?.length,
-    popularProductsCount: popularProducts?.length,
-  });
+  console.log("--- DATA DATABASE ---");
+  console.log("categories:", categories);
+  console.log("categories.length:", categories?.length);
+  console.log("flashSaleProducts:", flashSaleProducts?.length);
+  console.log("popularProducts:", popularProducts?.length);
 
   return (
     <div className="pb-20">

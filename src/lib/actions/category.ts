@@ -5,6 +5,7 @@ import { revalidatePath } from "next/cache"
 
 export async function getCategories() {
   try {
+    console.log("[getCategories] Starting fetch from database...");
     const categories = await prisma.category.findMany({
       include: {
         _count: {
@@ -13,6 +14,7 @@ export async function getCategories() {
       },
       orderBy: { name: 'asc' }
     })
+    console.log("[getCategories] Raw database response:", categories);
     return categories
   } catch (error) {
     console.error("Error fetching categories:", error)

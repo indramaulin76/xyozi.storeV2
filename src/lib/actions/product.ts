@@ -350,7 +350,6 @@ export async function deleteProduct(id: string) {
 export async function getFlashSaleProducts() {
   try {
     const products = await prisma.product.findMany({
-      where: { isFlashSale: true, status: "active" },
       include: {
         category: {
           select: { name: true, slug: true }
@@ -401,7 +400,6 @@ export async function setFlashSale(productId: string, enabled: boolean, flashSal
 export async function getPopularProducts(limit: number = 8) {
   try {
     const products = await prisma.product.findMany({
-      where: { isPopular: true, status: "active" },
       include: {
         category: {
           select: { name: true, slug: true }
