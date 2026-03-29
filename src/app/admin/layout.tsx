@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { 
@@ -17,26 +17,44 @@ import {
   Ticket
 } from "lucide-react";
 import { signOut, useSession } from "next-auth/react";
+import { getWebsiteSettings } from "@/lib/actions/settings";
+
+interface WebsiteSettings {
+  siteLogo: string | null;
+  siteLogoText: string;
+}
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const router = useRouter();
   const { data: session, status } = useSession();
+  const [settings, setSettings] = useState<WebsiteSettings | null>(null);
 
   const isLoginPage = pathname === "/admin/login";
 
-  // Proteksi Client-side tambahan
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
   useEffect(() => {
     if (status === "unauthenticated" && !isLoginPage) {
       router.push("/admin/login");
     }
   }, [status, isLoginPage, router]);
 
+  const loadSettings = async () => {
+    try {
+      const s = await getWebsiteSettings();
+      setSettings(s);
+    } catch (error) {
+      console.error("Failed to load settings:", error);
+    }
+  };
+
   if (isLoginPage) {
     return <div className="bg-[#020617] min-h-screen">{children}</div>;
   }
 
-  // Jika sedang loading session, tampilkan skeleton/loading
   if (status === "loading") {
     return (
       <div className="min-h-screen bg-[#020617] flex items-center justify-center">
@@ -45,7 +63,6 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     );
   }
 
-  // Jika tidak terautentikasi (dan bukan halaman login), jangan render apapun selagi nunggu redirect
   if (!session && !isLoginPage) {
     return null;
   }
@@ -68,7 +85,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       <aside className="w-64 border-r border-slate-800 bg-[#020617] hidden md:flex flex-col sticky top-0 h-screen shadow-2xl">
         <div className="p-6">
           <Link href="/admin" className="text-xl font-black tracking-tighter text-white">
-            XYOZI<span className="text-yellow-500">ADMIN</span>
+            {settings?.siteLogo ? (
+              <img src={settings.siteLogo} alt="Logo" className="h-8 object-contain" />
+            ) : (
+              <>
+                {settings?.siteLogoText || "XYOZI"}<span className="text-yellow-500">ADMIN</span>
+              </>
+            )}
           </Link>
         </div>
 

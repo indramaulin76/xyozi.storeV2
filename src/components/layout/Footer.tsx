@@ -1,7 +1,35 @@
+"use client";
+
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { getWebsiteSettings } from '@/lib/actions/settings';
+
+interface WebsiteSettings {
+  siteName: string;
+  siteLogo: string | null;
+  siteLogoText: string;
+  footerCopyright: string;
+}
 
 export default function Footer() {
   const currentYear = new Date().getFullYear();
+  const [settings, setSettings] = useState<WebsiteSettings | null>(null);
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      const s = await getWebsiteSettings();
+      setSettings(s);
+    } catch (error) {
+      console.error("Failed to load settings:", error);
+    }
+  };
+
+  const brandName = settings?.siteLogoText || "Xyozi";
+  const copyright = settings?.footerCopyright || `© ${currentYear} ${brandName} Store. All rights reserved.`;
 
   return (
     <footer className="w-full border-t border-slate-800 bg-slate-950 pt-12 pb-8">
@@ -9,8 +37,14 @@ export default function Footer() {
         <div className="grid grid-cols-1 gap-12 sm:grid-cols-2 lg:grid-cols-4">
           {/* Brand Column */}
           <div className="space-y-4">
-            <Link href="/" className="text-2xl font-bold tracking-tighter text-white">
-              XYOZI<span className="text-yellow-500 text-sm">STORE</span>
+            <Link href="/" className="text-2xl font-bold tracking-tighter text-white flex items-center gap-2">
+              {settings?.siteLogo ? (
+                <img src={settings.siteLogo} alt="Logo" className="h-8" />
+              ) : (
+                <>
+                  {brandName}<span className="text-yellow-500 text-sm">STORE</span>
+                </>
+              )}
             </Link>
             <p className="text-sm leading-relaxed text-slate-400">
               Top Up Game Termurah, Tercepat, dan Terpercaya di Indonesia. 
@@ -60,7 +94,7 @@ export default function Footer() {
             ))}
           </div>
           <p className="mt-12 text-center text-xs text-slate-600">
-            © {currentYear} Xyozi Store. All rights reserved. Built with Next.js 15.
+            {copyright} Built with Next.js 15.
           </p>
         </div>
       </div>
