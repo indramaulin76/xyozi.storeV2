@@ -8,6 +8,7 @@ interface WebsiteSettings {
   siteLogo: string | null
   siteLogoText: string
   siteTagline: string
+  heroBanner: string | null
   seoTitle: string
   seoDescription: string
   seoKeywords: string
@@ -48,6 +49,7 @@ export async function getWebsiteSettings(): Promise<WebsiteSettings> {
       siteLogo: settingsMap["site_logo"] || null,
       siteLogoText: settingsMap["site_logo_text"] || "Tokomu",
       siteTagline: settingsMap["site_tagline"] || "Top Up Game Terpercaya",
+      heroBanner: settingsMap["hero_banner"] || null,
       seoTitle: settingsMap["seo_title"] || "",
       seoDescription: settingsMap["seo_description"] || "",
       seoKeywords: settingsMap["seo_keywords"] || "",
@@ -79,6 +81,7 @@ export async function getWebsiteSettings(): Promise<WebsiteSettings> {
       siteLogo: null,
       siteLogoText: "Tokomu",
       siteTagline: "Top Up Game Terpercaya",
+      heroBanner: null,
       seoTitle: "",
       seoDescription: "",
       seoKeywords: "",
@@ -131,6 +134,7 @@ export async function updateWebsiteSettings(data: Partial<WebsiteSettings>): Pro
     if (data.siteLogo !== undefined) updates.push({ key: "site_logo", value: data.siteLogo || "" })
     if (data.siteLogoText !== undefined) updates.push({ key: "site_logo_text", value: data.siteLogoText })
     if (data.siteTagline !== undefined) updates.push({ key: "site_tagline", value: data.siteTagline })
+    if (data.heroBanner !== undefined) updates.push({ key: "hero_banner", value: data.heroBanner || "" })
     if (data.seoTitle !== undefined) updates.push({ key: "seo_title", value: data.seoTitle })
     if (data.seoDescription !== undefined) updates.push({ key: "seo_description", value: data.seoDescription })
     if (data.seoKeywords !== undefined) updates.push({ key: "seo_keywords", value: data.seoKeywords })

@@ -13,6 +13,7 @@ interface WebsiteSettings {
   siteLogo: string | null;
   siteLogoText: string;
   siteTagline: string;
+  heroBanner: string | null;
   seoTitle: string;
   seoDescription: string;
   seoKeywords: string;
@@ -43,9 +44,11 @@ export default function AdminPengaturanPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [uploadingLogo, setUploadingLogo] = useState(false);
+  const [uploadingHeroBanner, setUploadingHeroBanner] = useState(false);
   const [activeTab, setActiveTab] = useState("toko");
   const [showPreview, setShowPreview] = useState(false);
   const logoInputRef = useRef<HTMLInputElement>(null);
+  const heroBannerInputRef = useRef<HTMLInputElement>(null);
   
   const currentYear = new Date().getFullYear();
   const [settings, setSettings] = useState<WebsiteSettings>({
@@ -53,6 +56,7 @@ export default function AdminPengaturanPage() {
     siteLogo: null,
     siteLogoText: "Tokomu",
     siteTagline: "Top Up Game Terpercaya",
+    heroBanner: null,
     seoTitle: "",
     seoDescription: "",
     seoKeywords: "",
@@ -111,6 +115,32 @@ export default function AdminPengaturanPage() {
       alert("Gagal upload logo!");
     } finally {
       setUploadingLogo(false);
+    }
+  };
+
+  const handleHeroBannerUpload = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    setUploadingHeroBanner(true);
+    
+    const formData = new FormData();
+    formData.append("file", file);
+
+    try {
+      const res = await fetch("/api/upload", {
+        method: "POST",
+        body: formData,
+      });
+      const data = await res.json();
+      
+      if (data.url) {
+        setSettings(prev => ({ ...prev, heroBanner: data.url }));
+      }
+    } catch (error) {
+      alert("Gagal upload banner!");
+    } finally {
+      setUploadingHeroBanner(false);
     }
   };
 
@@ -264,6 +294,36 @@ export default function AdminPengaturanPage() {
                         <Input className="bg-slate-950 border-slate-700 h-12 rounded-xl text-white" placeholder="Tokomu" value={settings.siteLogoText} onChange={(e: React.ChangeEvent<HTMLInputElement>) => updateField("siteLogoText", e.target.value)} />
                       </div>
                     </div>
+                  </div>
+                </CardContent>
+              </Card>
+              <Card className="bg-slate-900 border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+                <div className="px-6 py-4 border-b border-slate-800 bg-slate-800/30 flex items-center gap-3">
+                  <ImageIcon size={18} className="text-blue-500" />
+                  <h3 className="font-bold text-white text-sm uppercase">Hero Banner</h3>
+                </div>
+                <CardContent className="p-6">
+                  <div className="space-y-3">
+                    <label className="text-xs font-bold text-slate-400 uppercase tracking-wider">Gambar Banner</label>
+                    <div onClick={() => heroBannerInputRef.current?.click()} className="relative h-40 bg-slate-950 border-2 border-dashed border-slate-700 rounded-xl flex flex-col items-center justify-center cursor-pointer hover:border-yellow-500 hover:bg-yellow-500/5 transition-all overflow-hidden group">
+                      {uploadingHeroBanner ? (
+                        <Loader2 className="w-10 h-10 animate-spin text-yellow-500" />
+                      ) : settings.heroBanner ? (
+                        <div className="relative w-full h-full flex items-center justify-center p-2">
+                          <img src={settings.heroBanner} alt="Hero Banner" className="max-w-full max-h-full object-contain rounded-lg" />
+                          <div className="absolute inset-0 bg-black/70 opacity-0 group-hover:opacity-100 flex items-center justify-center transition-all">
+                            <Upload size={24} className="text-white" />
+                          </div>
+                        </div>
+                      ) : (
+                        <>
+                          <ImageIcon size={32} className="text-slate-600 mb-2" />
+                          <span className="text-xs font-bold text-slate-600 uppercase tracking-wider">Klik untuk Upload</span>
+                        </>
+                      )}
+                      <input type="file" ref={heroBannerInputRef} hidden accept="image/*" onChange={handleHeroBannerUpload} />
+                    </div>
+                    <p className="text-xs text-slate-500">Ukuran rekomendasi: 1600x500 pixel (3.2:1)</p>
                   </div>
                 </CardContent>
               </Card>
