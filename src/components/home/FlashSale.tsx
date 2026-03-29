@@ -53,7 +53,8 @@ export default function FlashSale({ products, endTime }: FlashSaleProps) {
     return () => clearInterval(timer);
   }, [endTime]);
 
-  if (products.length === 0) {
+  if (!products || products.length === 0) {
+    console.log("[FlashSale] No products data:", products);
     return null;
   }
 

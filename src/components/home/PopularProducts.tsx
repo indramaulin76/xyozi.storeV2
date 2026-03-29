@@ -25,7 +25,8 @@ export default function PopularProducts({ initialProducts }: PopularProductsProp
   const [products, setProducts] = useState<PopularProduct[]>(initialProducts);
   const [loading, setLoading] = useState(false);
 
-  if (products.length === 0) {
+  if (!products || products.length === 0) {
+    console.log("[PopularProducts] No products data:", initialProducts);
     return null;
   }
 

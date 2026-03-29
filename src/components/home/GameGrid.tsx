@@ -38,6 +38,8 @@ export default function GameGrid({ categories }: GameGridProps) {
   const [activeSection, setActiveSection] = useState("topup");
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
+  console.log("[GameGrid] Received categories:", categories);
+
   const availableSections = useMemo(() => {
     const sectionsWithCategories = new Set(categories.map(c => c.menuSection));
     return MENU_SECTIONS.filter(section => sectionsWithCategories.has(section.key));

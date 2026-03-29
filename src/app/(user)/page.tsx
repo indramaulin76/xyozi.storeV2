@@ -16,6 +16,12 @@ export default async function Home() {
     getWebsiteSettings()
   ]);
 
+  console.log("[Home] Fetched data:", {
+    categoriesCount: categories?.length,
+    flashSaleProductsCount: flashSaleProducts?.length,
+    popularProductsCount: popularProducts?.length,
+  });
+
   return (
     <div className="pb-20">
       <Hero heroBanner={websiteSettings.heroBanner} />

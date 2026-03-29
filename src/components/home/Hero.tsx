@@ -9,17 +9,6 @@ import {
 } from "@/components/ui/carousel";
 import Autoplay from "embla-carousel-autoplay";
 import React from "react";
-import { getWebsiteSettings } from "@/lib/actions/settings";
-
-async function getHeroBanner() {
-  try {
-    const settings = await getWebsiteSettings();
-    return settings.heroBanner;
-  } catch (error) {
-    console.error("Error fetching hero banner:", error);
-    return null;
-  }
-}
 
 const DEFAULT_BANNER = "https://images.unsplash.com/photo-1542751371-adc38448a05e?q=80&w=1600&h=500&auto=format&fit=crop";
 
