@@ -7,6 +7,9 @@ import { getFlashSaleProducts } from "@/lib/actions/product";
 import { getFlashSaleSettings, getWebsiteSettings } from "@/lib/actions/settings";
 import { getPopularProducts } from "@/lib/actions/product";
 
+export const dynamic = 'force-dynamic';
+export const revalidate = 0;
+
 export default async function Home() {
   const [categories, flashSaleProducts, flashSaleSettings, popularProducts, websiteSettings] = await Promise.all([
     getCategories(),
