@@ -11,6 +11,10 @@ WORKDIR /app
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
+# Dummy URL untuk build (aman, tidak ada data asli)
+ARG DATABASE_URL="mysql://dummy:dummy@localhost:3306/dummy"
+ENV DATABASE_URL=$DATABASE_URL
+
 RUN npx prisma generate
 
 RUN npm run build
