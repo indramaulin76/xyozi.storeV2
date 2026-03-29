@@ -31,10 +31,29 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ success: false, message: 'Missing ref_id' }, { status: 400 });
     }
 
-    // Optional: Validasi Signature Digiflazz
-    // Signature dikirim via header x-hub-signature (contoh: sha1=...)
-    // const signatureHeader = request.headers.get('x-hub-signature');
-    // Jika user menyimpan DIGIFLAZZ_WEBHOOK_SECRET, bisa divalidasi dengan hmac sha1
+    // Validasi Signature Digiflazz (SHA1)
+    const signatureHeader = request.headers.get('x-hub-signature');
+    const webhookSecret = process.env.DIGIFLAZZ_WEBHOOK_SECRET;
+
+    if (webhookSecret && signatureHeader) {
+      const expectedSignature = crypto
+        .createHmac('sha1', webhookSecret)
+        .update(rawBody)
+        .digest('hex');
+
+      const providedSignature = signatureHeader.replace('sha1=', '');
+
+      if (expectedSignature !== providedSignature) {
+        console.error('[Webhook Digiflazz] Signature INVALID! Expected:', expectedSignature, 'Got:', providedSignature);
+        return NextResponse.json({ success: false, message: 'Invalid signature' }, { status: 401 });
+      }
+
+      console.log('[Digiflazz Webhook] Signature Valid!');
+    } else if (!webhookSecret) {
+      console.warn('[Webhook Digiflazz] DIGIFLAZZ_WEBHOOK_SECRET tidak dikonfigurasi, skip validasi');
+    } else if (!signatureHeader) {
+      console.warn('[Webhook Digiflazz] x-hub-signature header tidak ditemukan');
+    }
 
     const order = await prisma.order.findUnique({
       where: { referenceId: refId },
