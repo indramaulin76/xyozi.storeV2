@@ -18,54 +18,43 @@ function formatPhone(phone: string): string {
   return phone.replace(/^0/, "62").replace(/\D/g, "");
 }
 
-async function sendViaWAHA(phone: string, message: string): Promise<{ success: boolean; error?: string }> {
-  const wahaUrl = process.env.WAHA_URL;
-  const wahaApiKey = process.env.WAHA_API_KEY;
-  const wahaSession = process.env.WAHA_SESSION || "default";
+async function sendViaFonnte(phone: string, message: string): Promise<{ success: boolean; error?: string }> {
+  const fonnteToken = process.env.FONNTE_TOKEN;
 
-  console.log("[WAHA Debug] URL:", wahaUrl);
-  console.log("[WAHA Debug] API Key:", wahaApiKey ? "exists" : "MISSING");
-  console.log("[WAHA Debug] Session:", wahaSession);
-
-  if (!wahaUrl || !wahaApiKey) {
-    console.error("[WAHA Debug] WAHA not configured - URL:", wahaUrl, "API Key:", wahaApiKey ? "exists" : "MISSING");
-    return { success: false, error: "WAHA not configured" };
+  if (!fonnteToken) {
+    console.error("[Fonnte] Token not configured");
+    return { success: false, error: "Fonnte token not configured" };
   }
 
-  const chatId = `${phone}@c.us`;
-  const fullUrl = `${wahaUrl}/api/sendText`;
-  
-  console.log("[WAHA Debug] Full URL:", fullUrl);
-  console.log("[WAHA Debug] ChatId:", chatId);
-  console.log("[WAHA Debug] Message:", message.substring(0, 50) + "...");
+  const formattedPhone = phone.startsWith("62") ? phone : `62${phone}`;
+
+  console.log(`[Fonnte] Sending to ${formattedPhone}...`);
 
   try {
-    console.log("[WAHA Debug] Sending request...");
-    const response = await fetch(fullUrl, {
+    const response = await fetch("https://api.fonnte.com/send", {
       method: "POST",
       headers: {
-        "Content-Type": "application/json",
-        "X-Api-Key": wahaApiKey,
+        "Authorization": fonnteToken,
       },
-      body: JSON.stringify({
-        session: wahaSession,
-        chatId: chatId,
-        text: message,
+      body: new URLSearchParams({
+        target: formattedPhone,
+        message: message,
+        countryCode: "62",
       }),
     });
 
-    console.log("[WAHA Debug] Response status:", response.status);
-    
-    if (response.ok) {
-      console.log(`[WAHA] Message sent to ${phone}`);
+    const data = await response.json();
+    console.log(`[Fonnte] Response:`, data);
+
+    if (data.status === true) {
+      console.log(`[Fonnte] Message sent successfully to ${formattedPhone}`);
       return { success: true };
     }
 
-    const errorText = await response.text();
-    console.error(`[WAHA Debug] Failed: ${response.status} - ${errorText}`);
-    return { success: false, error: `HTTP ${response.status}` };
+    console.error(`[Fonnte] Failed:`, data.reason);
+    return { success: false, error: data.reason || "Unknown error" };
   } catch (error) {
-    console.error(`[WAHA Debug] Error:`, error);
+    console.error(`[Fonnte] Error:`, error);
     return { success: false, error: "Network error" };
   }
 }
@@ -73,10 +62,10 @@ async function sendViaWAHA(phone: string, message: string): Promise<{ success: b
 export async function sendWhatsAppNotification(params: SendWhatsAppParams): Promise<SendWhatsAppResult> {
   const { phoneNumber, customerName, invoiceNumber, productName, serialNumber } = params;
 
-  const wahaUrl = process.env.WAHA_URL;
-  if (!wahaUrl) {
-    console.error("[WhatsApp] WAHA_URL not configured");
-    return { success: false, error: "WhatsApp service not configured" };
+  const fonnteToken = process.env.FONNTE_TOKEN;
+  if (!fonnteToken) {
+    console.error("[WhatsApp] FONNTE_TOKEN not configured");
+    return { success: false, error: "Fonnte token not configured" };
   }
 
   const formattedPhone = formatPhone(phoneNumber);
@@ -88,7 +77,7 @@ export async function sendWhatsAppNotification(params: SendWhatsAppParams): Prom
   console.log(`[WhatsApp] Sending to ${formattedPhone}: ${message.substring(0, 50)}...`);
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-    const result = await sendViaWAHA(formattedPhone, message);
+    const result = await sendViaFonnte(formattedPhone, message);
 
     if (result.success) {
       console.log(`[WhatsApp] Notification sent successfully to ${formattedPhone} (attempt ${attempt + 1})`);
@@ -123,12 +112,11 @@ interface AdminNotificationParams {
 }
 
 export async function sendAdminNotification(params: AdminNotificationParams): Promise<void> {
-  const wahaUrl = process.env.WAHA_URL;
-  const wahaApiKey = process.env.WAHA_API_KEY;
+  const fonnteToken = process.env.FONNTE_TOKEN;
   const adminPhone = process.env.ADMIN_WA_PHONE;
 
-  if (!wahaUrl || !wahaApiKey || !adminPhone) {
-    console.warn("[WhatsApp Admin] WAHA not configured or ADMIN_WA_PHONE not set, skipping admin notification");
+  if (!fonnteToken || !adminPhone) {
+    console.warn("[WhatsApp Admin] Fonnte not configured or ADMIN_WA_PHONE not set, skipping admin notification");
     return;
   }
 
@@ -143,7 +131,7 @@ export async function sendAdminNotification(params: AdminNotificationParams): Pr
 
   console.log(`[WhatsApp Admin] Sending to ${formattedAdminPhone}: ${message.substring(0, 50)}...`);
 
-  const result = await sendViaWAHA(formattedAdminPhone, message);
+  const result = await sendViaFonnte(formattedAdminPhone, message);
 
   if (result.success) {
     console.log(`[WhatsApp Admin] Notification sent to admin ${formattedAdminPhone}`);
