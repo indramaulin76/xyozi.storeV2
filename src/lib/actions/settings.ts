@@ -70,7 +70,7 @@ export async function getWebsiteSettings(): Promise<WebsiteSettings> {
       digiflazzTesting: settingsMap["digiflazz_testing"] === "true",
       sukurupiahApiId: settingsMap["sukurupiah_api_id"] || "",
       sukurupiahApiKey: settingsMap["sukurupiah_api_key"] || "",
-      sukurupiahEndpoint: settingsMap["sukurupiah_endpoint"] || process.env.SUKURUPIAH_ENDPOINT || "https://sakurupiah.id/api-sanbox/",
+      sukurupiahEndpoint: settingsMap["sukurupiah_endpoint"] || process.env.SUKURUPIAH_ENDPOINT || "https://sakurupiah.id/api/",
     }
   } catch (error) {
     console.error("Error fetching website settings:", error)
@@ -100,7 +100,7 @@ export async function getWebsiteSettings(): Promise<WebsiteSettings> {
       digiflazzTesting: false,
       sukurupiahApiId: "",
       sukurupiahApiKey: "",
-      sukurupiahEndpoint: "https://sakurupiah.id/api-sanbox/",
+      sukurupiahEndpoint: "https://sakurupiah.id/api/",
     }
   }
 }

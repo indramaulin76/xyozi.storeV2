@@ -74,7 +74,7 @@ export default function AdminPengaturanPage() {
     digiflazzTesting: false,
     sukurupiahApiId: "",
     sukurupiahApiKey: "",
-    sukurupiahEndpoint: "https://sakurupiah.id/api-sanbox/",
+    sukurupiahEndpoint: "https://sakurupiah.id/api/",
   });
 
   useEffect(() => {
