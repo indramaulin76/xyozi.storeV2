@@ -23,14 +23,25 @@ async function sendViaWAHA(phone: string, message: string): Promise<{ success: b
   const wahaApiKey = process.env.WAHA_API_KEY;
   const wahaSession = process.env.WAHA_SESSION || "default";
 
+  console.log("[WAHA Debug] URL:", wahaUrl);
+  console.log("[WAHA Debug] API Key:", wahaApiKey ? "exists" : "MISSING");
+  console.log("[WAHA Debug] Session:", wahaSession);
+
   if (!wahaUrl || !wahaApiKey) {
+    console.error("[WAHA Debug] WAHA not configured - URL:", wahaUrl, "API Key:", wahaApiKey ? "exists" : "MISSING");
     return { success: false, error: "WAHA not configured" };
   }
 
   const chatId = `${phone}@c.us`;
+  const fullUrl = `${wahaUrl}/api/sendText`;
+  
+  console.log("[WAHA Debug] Full URL:", fullUrl);
+  console.log("[WAHA Debug] ChatId:", chatId);
+  console.log("[WAHA Debug] Message:", message.substring(0, 50) + "...");
 
   try {
-    const response = await fetch(`${wahaUrl}/api/sendText`, {
+    console.log("[WAHA Debug] Sending request...");
+    const response = await fetch(fullUrl, {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
@@ -43,16 +54,18 @@ async function sendViaWAHA(phone: string, message: string): Promise<{ success: b
       }),
     });
 
+    console.log("[WAHA Debug] Response status:", response.status);
+    
     if (response.ok) {
       console.log(`[WAHA] Message sent to ${phone}`);
       return { success: true };
     }
 
     const errorText = await response.text();
-    console.error(`[WAHA] Failed: ${response.status} - ${errorText}`);
+    console.error(`[WAHA Debug] Failed: ${response.status} - ${errorText}`);
     return { success: false, error: `HTTP ${response.status}` };
   } catch (error) {
-    console.error(`[WAHA] Error:`, error);
+    console.error(`[WAHA Debug] Error:`, error);
     return { success: false, error: "Network error" };
   }
 }
