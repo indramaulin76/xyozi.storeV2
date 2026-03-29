@@ -22,12 +22,17 @@ export default async function Home() {
   console.log("flashSaleProducts:", flashSaleProducts?.length);
   console.log("popularProducts:", popularProducts?.length);
 
+  console.log("=== PASSING TO COMPONENTS ===");
+  console.log("categories:", categories?.length);
+  console.log("flashSaleProducts:", flashSaleProducts?.length);
+  console.log("popularProducts:", popularProducts?.length);
+
   return (
     <div className="pb-20">
-      <Hero heroBanner={websiteSettings.heroBanner} />
-      <FlashSale products={flashSaleProducts} endTime={flashSaleSettings.endTime} />
-      <PopularProducts initialProducts={popularProducts} />
-      <GameGrid categories={categories} />
+      <Hero heroBanner={websiteSettings?.heroBanner} />
+      <FlashSale products={flashSaleProducts || []} endTime={flashSaleSettings?.endTime} />
+      <PopularProducts initialProducts={popularProducts || []} />
+      <GameGrid categories={categories || []} />
     </div>
   );
 }

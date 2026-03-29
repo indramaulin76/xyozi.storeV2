@@ -38,8 +38,17 @@ export default function GameGrid({ categories }: GameGridProps) {
   const [activeSection, setActiveSection] = useState("topup");
   const sectionRefs = useRef<Record<string, HTMLElement | null>>({});
 
+  console.log("[GameGrid] categories received:", categories?.length);
+
   if (!categories || categories.length === 0) {
-    return null;
+    console.log("[GameGrid] No categories, showing message");
+    return (
+      <section className="container mx-auto px-4 md:px-8 lg:px-12 py-8">
+        <div className="bg-slate-800 border border-slate-700 rounded-3xl p-8 text-center">
+          <p className="text-slate-400">Belum ada kategori produk.</p>
+        </div>
+      </section>
+    );
   }
 
   const availableSections = useMemo(() => {

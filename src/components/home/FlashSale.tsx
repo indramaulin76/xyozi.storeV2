@@ -25,6 +25,8 @@ interface FlashSaleProps {
 export default function FlashSale({ products, endTime }: FlashSaleProps) {
   const [timeLeft, setTimeLeft] = useState({ hours: 0, minutes: 0, seconds: 0 });
 
+  console.log("[FlashSale] products received:", products?.length);
+
   useEffect(() => {
     if (!endTime) return;
 

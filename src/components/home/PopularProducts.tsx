@@ -22,14 +22,16 @@ interface PopularProductsProps {
 }
 
 export default function PopularProducts({ initialProducts }: PopularProductsProps) {
-  const [products, setProducts] = useState<PopularProduct[]>(initialProducts);
+  const [products, setProducts] = useState<PopularProduct[]>(initialProducts || []);
   const [loading, setLoading] = useState(false);
+
+  console.log("[PopularProducts] initialProducts:", initialProducts?.length);
 
   if (!products || products.length === 0) {
     return null;
   }
 
-  const sortedProducts = [...products].sort((a, b) => b.orderCount - a.orderCount);
+  const sortedProducts = [...products].sort((a, b) => (b.orderCount || 0) - (a.orderCount || 0));
 
   return (
     <section className="container mx-auto px-4 md:px-8 lg:px-12 py-8">
