@@ -18,12 +18,51 @@ function formatPhone(phone: string): string {
   return phone.replace(/^0/, "62").replace(/\D/g, "");
 }
 
+async function sendViaWAHA(phone: string, message: string): Promise<{ success: boolean; error?: string }> {
+  const wahaUrl = process.env.WAHA_URL;
+  const wahaApiKey = process.env.WAHA_API_KEY;
+  const wahaSession = process.env.WAHA_SESSION || "default";
+
+  if (!wahaUrl || !wahaApiKey) {
+    return { success: false, error: "WAHA not configured" };
+  }
+
+  const chatId = `${phone}@c.us`;
+
+  try {
+    const response = await fetch(`${wahaUrl}/api/sendText`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "X-Api-Key": wahaApiKey,
+      },
+      body: JSON.stringify({
+        session: wahaSession,
+        chatId: chatId,
+        text: message,
+      }),
+    });
+
+    if (response.ok) {
+      console.log(`[WAHA] Message sent to ${phone}`);
+      return { success: true };
+    }
+
+    const errorText = await response.text();
+    console.error(`[WAHA] Failed: ${response.status} - ${errorText}`);
+    return { success: false, error: `HTTP ${response.status}` };
+  } catch (error) {
+    console.error(`[WAHA] Error:`, error);
+    return { success: false, error: "Network error" };
+  }
+}
+
 export async function sendWhatsAppNotification(params: SendWhatsAppParams): Promise<SendWhatsAppResult> {
   const { phoneNumber, customerName, invoiceNumber, productName, serialNumber } = params;
 
-  const n8nWebhookUrl = process.env.N8N_WEBHOOK_URL;
-  if (!n8nWebhookUrl) {
-    console.error("[WhatsApp] N8N_WEBHOOK_URL not configured");
+  const wahaUrl = process.env.WAHA_URL;
+  if (!wahaUrl) {
+    console.error("[WhatsApp] WAHA_URL not configured");
     return { success: false, error: "WhatsApp service not configured" };
   }
 
@@ -33,25 +72,17 @@ export async function sendWhatsAppNotification(params: SendWhatsAppParams): Prom
   if (serialNumber) message += ` SN: ${serialNumber}.`;
   message += " Terima kasih sudah order di Xyozi Store!";
 
-  const payload = { phone: formattedPhone, message };
+  console.log(`[WhatsApp] Sending to ${formattedPhone}: ${message.substring(0, 50)}...`);
 
   for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
-    try {
-      const response = await fetch(n8nWebhookUrl, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(payload),
-      });
+    const result = await sendViaWAHA(formattedPhone, message);
 
-      if (response.ok) {
-        console.log(`[WhatsApp] Notification sent successfully to ${formattedPhone} (attempt ${attempt + 1})`);
-        return { success: true };
-      }
-
-      console.warn(`[WhatsApp] Attempt ${attempt + 1} failed with status:`, response.status);
-    } catch (error) {
-      console.error(`[WhatsApp] Attempt ${attempt + 1} error:`, error);
+    if (result.success) {
+      console.log(`[WhatsApp] Notification sent successfully to ${formattedPhone} (attempt ${attempt + 1})`);
+      return { success: true };
     }
+
+    console.warn(`[WhatsApp] Attempt ${attempt + 1} failed:`, result.error);
 
     if (attempt < MAX_RETRIES - 1) {
       console.log(`[WhatsApp] Retrying in ${RETRY_DELAYS[attempt]}ms...`);
@@ -79,11 +110,12 @@ interface AdminNotificationParams {
 }
 
 export async function sendAdminNotification(params: AdminNotificationParams): Promise<void> {
-  const adminWaUrl = process.env.N8N_WEBHOOK_URL;
+  const wahaUrl = process.env.WAHA_URL;
+  const wahaApiKey = process.env.WAHA_API_KEY;
   const adminPhone = process.env.ADMIN_WA_PHONE;
 
-  if (!adminWaUrl || !adminPhone) {
-    console.warn("[WhatsApp Admin] N8N_WEBHOOK_URL or ADMIN_WA_PHONE not configured, skipping admin notification");
+  if (!wahaUrl || !wahaApiKey || !adminPhone) {
+    console.warn("[WhatsApp Admin] WAHA not configured or ADMIN_WA_PHONE not set, skipping admin notification");
     return;
   }
 
@@ -96,21 +128,13 @@ export async function sendAdminNotification(params: AdminNotificationParams): Pr
   message += `*Error:* ${params.error}\n`;
   message += `\n_Cek logs segera!_`;
 
-  const payload = { phone: formattedAdminPhone, message };
+  console.log(`[WhatsApp Admin] Sending to ${formattedAdminPhone}: ${message.substring(0, 50)}...`);
 
-  try {
-    const response = await fetch(adminWaUrl, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(payload),
-    });
+  const result = await sendViaWAHA(formattedAdminPhone, message);
 
-    if (response.ok) {
-      console.log(`[WhatsApp Admin] Notification sent to admin ${formattedAdminPhone}`);
-    } else {
-      console.warn(`[WhatsApp Admin] Failed to send to admin:`, response.status);
-    }
-  } catch (error) {
-    console.error("[WhatsApp Admin] Error sending to admin:", error);
+  if (result.success) {
+    console.log(`[WhatsApp Admin] Notification sent to admin ${formattedAdminPhone}`);
+  } else {
+    console.warn(`[WhatsApp Admin] Failed to send to admin:`, result.error);
   }
 }
