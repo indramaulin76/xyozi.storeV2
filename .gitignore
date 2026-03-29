@@ -24,15 +24,33 @@
 .DS_Store
 *.pem
 
+# Uploads (user uploaded content - don't commit images)
+public/uploads/*.webp
+public/uploads/*.png
+public/uploads/*.jpg
+public/uploads/*.jpeg
+public/uploads/*.gif
+
 # debug
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
 .pnpm-debug.log*
 
-# env files (can opt-in for committing if needed)
-.env*
+# env files (NEVER commit these!)
+.env
+.env.local
+.env.production
+.env.docker
+*.env
+
+# API keys and secrets
 api.txt
+*.pem
+*.key
+
+# Credentials
+credentials.json
 
 # vercel
 .vercel
