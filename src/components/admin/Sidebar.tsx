@@ -8,7 +8,7 @@ import {
   Layers, 
   ShoppingBasket, 
   ClipboardList, 
-  Settings, 
+  Settings,
   LogOut,
   ChevronRight,
   AlertCircle,

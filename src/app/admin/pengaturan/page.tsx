@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useRef } from "react";
-import { Save, Monitor, Globe, Share2, Phone, FileText, Copyright, Upload, Loader2, Image as ImageIcon, Eye, Cpu, ShieldCheck } from "lucide-react";
+import { Save, Monitor, Globe, Share2, Phone, Copyright, Upload, Loader2, ImageIcon, Eye, Cpu, ShieldCheck } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
@@ -25,16 +25,11 @@ interface WebsiteSettings {
   contactWhatsApp: string;
   contactAddress: string;
   contactHotline: string;
-  pageAboutUs: string;
-  pageTermsOfService: string;
-  pagePrivacyPolicy: string;
   footerCopyright: string;
-  // API Digiflazz
   digiflazzUsername: string;
   digiflazzApiKey: string;
   digiflazzEndpoint: string;
   digiflazzTesting: boolean;
-  // API Sukurupiah
   sukurupiahApiId: string;
   sukurupiahApiKey: string;
   sukurupiahEndpoint: string;
@@ -68,9 +63,6 @@ export default function AdminPengaturanPage() {
     contactWhatsApp: "",
     contactAddress: "",
     contactHotline: "",
-    pageAboutUs: "",
-    pageTermsOfService: "",
-    pagePrivacyPolicy: "",
     footerCopyright: "© " + currentYear + " Xyozi Store. All rights reserved.",
     digiflazzUsername: "",
     digiflazzApiKey: "",
@@ -235,9 +227,6 @@ export default function AdminPengaturanPage() {
             </button>
             <button onClick={() => setActiveTab("kontak")} className={`px-5 py-3 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 border-r border-slate-700 ${activeTab === "kontak" ? "bg-yellow-500 text-black" : "text-slate-400 hover:text-white hover:bg-slate-800"}`}>
               <Phone size={16} /> Kontak
-            </button>
-            <button onClick={() => setActiveTab("halaman")} className={`px-5 py-3 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 border-r border-slate-700 ${activeTab === "halaman" ? "bg-yellow-500 text-black" : "text-slate-400 hover:text-white hover:bg-slate-800"}`}>
-              <FileText size={16} /> Halaman
             </button>
             <button onClick={() => setActiveTab("footer")} className={`px-5 py-3 text-xs font-bold uppercase tracking-wider transition-all flex items-center gap-2 border-r border-slate-700 ${activeTab === "footer" ? "bg-yellow-500 text-black" : "text-slate-400 hover:text-white hover:bg-slate-800"}`}>
               <Copyright size={16} /> Footer
@@ -510,57 +499,6 @@ export default function AdminPengaturanPage() {
           </div>
         )}
 
-        {activeTab === "halaman" && (
-          <div className="bg-slate-900 border border-slate-800 border-t-0 rounded-b-xl overflow-hidden">
-            <div className="space-y-5 p-6">
-              <Card className="bg-slate-900 border-slate-800 rounded-3xl overflow-hidden shadow-xl">
-                <div className="p-5 border-b border-slate-800 bg-slate-800/30 flex items-center gap-3">
-                  <FileText size={18} className="text-yellow-500" />
-                  <h3 className="font-bold text-white text-sm uppercase">Tentang Kami</h3>
-                </div>
-                <CardContent className="p-6">
-                  <Textarea 
-                    className="bg-slate-950 border-slate-800 rounded-xl min-h-[100px]" 
-                    placeholder="Ceritakan tentang toko Anda..." 
-                    value={settings.pageAboutUs} 
-                    onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateField("pageAboutUs", e.target.value)} 
-                  />
-                </CardContent>
-              </Card>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
-                <Card className="bg-slate-900 border-slate-800 rounded-3xl overflow-hidden shadow-xl">
-                  <div className="p-5 border-b border-slate-800 bg-slate-800/30 flex items-center gap-3">
-                    <FileText size={18} className="text-blue-500" />
-                    <h3 className="font-bold text-white text-sm uppercase">Syarat & Ketentuan</h3>
-                  </div>
-                  <CardContent className="p-6">
-                    <Textarea 
-                      className="bg-slate-950 border-slate-800 rounded-xl min-h-[100px]" 
-                      placeholder="Ketentuan layanan..." 
-                      value={settings.pageTermsOfService} 
-                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateField("pageTermsOfService", e.target.value)} 
-                    />
-                  </CardContent>
-                </Card>
-                <Card className="bg-slate-900 border-slate-800 rounded-3xl overflow-hidden shadow-xl">
-                  <div className="p-5 border-b border-slate-800 bg-slate-800/30 flex items-center gap-3">
-                    <FileText size={18} className="text-green-500" />
-                    <h3 className="font-bold text-white text-sm uppercase">Kebijakan Privasi</h3>
-                  </div>
-                  <CardContent className="p-6">
-                    <Textarea 
-                      className="bg-slate-950 border-slate-800 rounded-xl min-h-[100px]" 
-                      placeholder="Kebijakan privasi..." 
-                      value={settings.pagePrivacyPolicy} 
-                      onChange={(e: React.ChangeEvent<HTMLTextAreaElement>) => updateField("pagePrivacyPolicy", e.target.value)} 
-                    />
-                  </CardContent>
-                </Card>
-              </div>
-            </div>
-          </div>
-        )}
-
         {activeTab === "footer" && (
           <div className="bg-slate-900 border border-slate-800 border-t-0 rounded-b-xl overflow-hidden">
             <Card className="bg-slate-900 border-slate-800 rounded-2xl overflow-hidden shadow-xl">
@@ -596,7 +534,6 @@ export default function AdminPengaturanPage() {
 
         {activeTab === "api" && (
           <div className="bg-slate-900 border border-slate-800 border-t-0 rounded-b-xl overflow-hidden p-6 space-y-6">
-            {/* Digiflazz Settings */}
             <Card className="bg-slate-900 border-slate-800 rounded-2xl overflow-hidden shadow-xl">
               <div className="px-6 py-4 border-b border-slate-800 bg-slate-800/30 flex items-center justify-between">
                 <div className="flex items-center gap-3">
@@ -645,7 +582,6 @@ export default function AdminPengaturanPage() {
               </CardContent>
             </Card>
 
-            {/* Sukurupiah Settings */}
             <Card className="bg-slate-900 border-slate-800 rounded-2xl overflow-hidden shadow-xl">
               <div className="px-6 py-4 border-b border-slate-800 bg-slate-800/30 flex items-center gap-3">
                 <ShieldCheck size={18} className="text-blue-500" />
