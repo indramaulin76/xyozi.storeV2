@@ -50,6 +50,7 @@ model Product {
   isFlashSale   Boolean  @default(false) // Tampilkan di flash sale
   flashSalePrice Float?  // Harga khusus flash sale
   isPopular     Boolean  @default(false) // Tampilkan di produk populer
+  isManualPrice Boolean  @default(false) // Toggle gembok harga manual
   orderCount    Int      @default(0) // Jumlah transaksi (untuk populer)
   createdAt     DateTime @default(now())
   updatedAt     DateTime @updatedAt

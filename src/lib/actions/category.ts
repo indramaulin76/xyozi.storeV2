@@ -78,7 +78,7 @@ export async function updateCategory(id: string, formData: {
   slug: string, 
   logoUrl?: string, 
   bannerUrl?: string, 
-  markupPercent?: number, 
+  markupPercent?: number,
   description?: string,
   menuSection?: string,
   field1Label?: string,
@@ -86,6 +86,11 @@ export async function updateCategory(id: string, formData: {
   digiflazzBrand?: string
 }) {
   try {
+    const oldCategory = await prisma.category.findUnique({
+      where: { id },
+      select: { markupPercent: true }
+    });
+
     const category = await prisma.category.update({
       where: { id },
       data: {
@@ -100,8 +105,31 @@ export async function updateCategory(id: string, formData: {
         field2Label: formData.field2Label || null,
         digiflazzBrand: formData.digiflazzBrand || null,
       }
-    })
+    });
+
+    if (oldCategory && formData.markupPercent !== oldCategory.markupPercent) {
+      const newMarkup = formData.markupPercent || 0;
+      
+      const products = await prisma.product.findMany({
+        where: { 
+          categoryId: id,
+          isManualPrice: false
+        }
+      });
+      
+      for (const product of products) {
+        const newSellPrice = Math.ceil(product.basicPrice * (1 + newMarkup / 100));
+        await prisma.product.update({
+          where: { id: product.id },
+          data: { sellPrice: newSellPrice }
+        });
+      }
+      
+      console.log(`[Category Update] Updated ${products.length} products with new markup ${newMarkup}%`);
+    }
+
     revalidatePath("/admin/kategori")
+    revalidatePath("/admin/produk")
     revalidatePath("/")
     revalidatePath(`/produk/${formData.slug}`)
     return { success: true, data: category }

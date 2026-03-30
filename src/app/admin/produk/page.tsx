@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect, useMemo } from "react";
-import { Plus, RefreshCw, Filter, Loader2, Save, Trash2, Percent, Image as ImageIcon, X, CheckCircle, XCircle, Search } from "lucide-react";
+import { Plus, RefreshCw, Filter, Loader2, Save, Trash2, Percent, Image as ImageIcon, X, CheckCircle, XCircle, Search, Edit } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import {
@@ -13,7 +13,7 @@ import {
   DialogTitle,
 } from "@/components/ui/dialog";
 import { Label } from "@/components/ui/label";
-import { getProducts, createProduct, deleteProduct, syncDigiflazzProducts, checkProductInDigiflazz, bulkAssignCategory, bulkDeleteProducts, deleteProductsWithoutCategory } from "@/lib/actions/product";
+import { getProducts, createProduct, updateProduct, deleteProduct, syncDigiflazzProducts, checkProductInDigiflazz, bulkAssignCategory, bulkDeleteProducts, deleteProductsWithoutCategory } from "@/lib/actions/product";
 import { getCategories } from "@/lib/actions/category";
 import { ImageUpload } from "@/components/admin/ImageUpload";
 import { formatRupiah } from "@/lib/utils";
@@ -27,6 +27,10 @@ export default function AdminProdukPage() {
   const [fetching, setFetching] = useState(true);
   const [products, setProducts] = useState<any[]>([]);
   const [categories, setCategories] = useState<any[]>([]);
+
+  const [editMode, setEditMode] = useState(false);
+  const [editProductId, setEditProductId] = useState<string | null>(null);
+  const [isManualPrice, setIsManualPrice] = useState(false);
 
   // SKU Validation State
   const [skuValidation, setSkuValidation] = useState<{ status: 'idle' | 'checking' | 'valid' | 'invalid'; product?: any }>({ status: 'idle' });
@@ -161,6 +165,7 @@ export default function AdminProdukPage() {
     basicPrice: 0,
     sellPrice: 0,
     maxPrice: 0,
+    isManualPrice: false,
   });
 
   const fetchData = async () => {
@@ -234,6 +239,9 @@ export default function AdminProdukPage() {
   };
 
   const handleOpenAdd = () => {
+    setEditMode(false);
+    setEditProductId(null);
+    setIsManualPrice(false);
     setFormData({
       categoryId: "",
       skuCode: "",
@@ -241,9 +249,54 @@ export default function AdminProdukPage() {
       basicPrice: 0,
       sellPrice: 0,
       maxPrice: 0,
+      isManualPrice: false,
     });
     setSkuValidation({ status: 'idle' });
     setOpen(true);
+  };
+
+  const handleOpenEdit = (product: any) => {
+    setEditMode(true);
+    setEditProductId(product.id);
+    setIsManualPrice(product.isManualPrice || false);
+    setFormData({
+      categoryId: product.categoryId || "",
+      skuCode: product.skuCode,
+      name: product.name,
+      basicPrice: product.basicPrice,
+      sellPrice: product.sellPrice,
+      maxPrice: product.maxPrice,
+      isManualPrice: product.isManualPrice || false,
+    });
+    setSkuValidation({ status: 'valid', product: { name: product.name, price: product.basicPrice } });
+    setOpen(true);
+  };
+
+  const handleUpdateProduct = async (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    if (!formData.categoryId || !formData.name || !editProductId) {
+      alert("Harap isi semua kolom wajib!");
+      return;
+    }
+
+    setLoading(true);
+    const result = await updateProduct(editProductId, {
+      categoryId: formData.categoryId,
+      name: formData.name,
+      sellPrice: formData.sellPrice,
+      maxPrice: formData.maxPrice,
+      status: "active",
+      isManualPrice: formData.isManualPrice,
+    });
+    setLoading(false);
+
+    if (result.success) {
+      setOpen(false);
+      fetchData();
+    } else {
+      alert(result.error);
+    }
   };
 
   const handleAddProduct = async (e: React.FormEvent) => {
@@ -273,6 +326,7 @@ export default function AdminProdukPage() {
         basicPrice: 0,
         sellPrice: 0,
         maxPrice: 0,
+        isManualPrice: false,
       });
       fetchData();
     } else {
@@ -320,6 +374,9 @@ export default function AdminProdukPage() {
           {/* ADD PRODUCT DIALOG */}
           <Dialog open={open} onOpenChange={(isOpen) => {
             if (!isOpen) {
+              setEditMode(false);
+              setEditProductId(null);
+              setIsManualPrice(false);
               setFormData({
                 categoryId: "",
                 skuCode: "",
@@ -327,6 +384,7 @@ export default function AdminProdukPage() {
                 basicPrice: 0,
                 sellPrice: 0,
                 maxPrice: 0,
+                isManualPrice: false,
               });
               setSkuValidation({ status: 'idle' });
             }
@@ -341,11 +399,15 @@ export default function AdminProdukPage() {
             </button>
             <DialogContent className="bg-slate-900 border-slate-800 text-white max-w-4xl rounded-3xl overflow-y-auto max-h-[90vh]">
               <DialogHeader className="pb-4 border-b border-slate-800/50">
-                <DialogTitle className="text-2xl font-black uppercase tracking-tight">Tambah Produk Layanan</DialogTitle>
-                <DialogDescription className="text-slate-400 font-medium"> Masukkan detail produk secara manual atau gunakan Sync Digiflazz untuk otomatis. </DialogDescription>
+                <DialogTitle className="text-2xl font-black uppercase tracking-tight">
+                  {editMode ? "Edit Produk" : "Tambah Produk Layanan"}
+                </DialogTitle>
+                <DialogDescription className="text-slate-400 font-medium">
+                  {editMode ? "Perbarui detail produk." : "Masukkan detail produk secara manual atau gunakan Sync Digiflazz untuk otomatis."}
+                </DialogDescription>
               </DialogHeader>
               
-              <form onSubmit={handleAddProduct} className="space-y-8 py-6">
+              <form onSubmit={editMode ? handleUpdateProduct : handleAddProduct} className="space-y-8 py-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                   <div className="space-y-6">
                     <div className="space-y-2">
@@ -448,22 +510,54 @@ export default function AdminProdukPage() {
                           className="bg-slate-900 border-slate-800 h-14 rounded-2xl text-xl font-bold pl-12"
                           value={formData.basicPrice}
                           onChange={(e) => setFormData({...formData, basicPrice: Number(e.target.value)})}
+                          readOnly={editMode}
                         />
                         <span className="absolute left-5 top-1/2 -translate-y-1/2 font-bold text-slate-600">Rp</span>
                       </div>
                     </div>
+                    
+                    {/* Gembok Harga Toggle */}
+                    <div className="flex items-center justify-between p-4 bg-slate-800/50 rounded-xl border border-slate-700">
+                      <div>
+                        <p className="text-sm font-bold text-white">Gembok Harga</p>
+                        <p className="text-xs text-slate-400">Aktifkan jika ingin harga manual tidak terpengaruh perubahan markup kategori</p>
+                      </div>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setIsManualPrice(!isManualPrice);
+                          setFormData({ ...formData, isManualPrice: !isManualPrice });
+                        }}
+                        className={`relative w-14 h-8 rounded-full transition-colors ${
+                          isManualPrice ? 'bg-yellow-500' : 'bg-slate-600'
+                        }`}
+                      >
+                        <div
+                          className={`absolute top-1 w-6 h-6 bg-white rounded-full shadow transition-transform ${
+                            isManualPrice ? 'translate-x-7' : 'translate-x-1'
+                          }`}
+                        />
+                      </button>
+                    </div>
+
                     <div className="space-y-2">
-                      <Label htmlFor="jual" className="text-xs font-black uppercase text-slate-500 ml-1">Harga Jual (Pelanggan)</Label>
+                      <Label htmlFor="jual" className={`text-xs font-black uppercase ml-1 ${isManualPrice ? 'text-yellow-500' : 'text-slate-500'}`}>
+                        {isManualPrice ? '⛊ Harga Jual Manual' : 'Harga Jual (Pelanggan)'}
+                      </Label>
                       <div className="relative">
                         <Input 
                           id="jual" 
                           type="number" 
-                          placeholder="0" 
-                          className="bg-slate-900 border-slate-800 h-14 rounded-2xl text-xl font-black text-yellow-400 pl-12"
+                          placeholder={isManualPrice ? "Masukkan harga manual" : "0"} 
+                          className={`h-14 rounded-2xl text-xl font-black pl-12 ${
+                            isManualPrice 
+                              ? 'bg-yellow-500/10 border-yellow-500/50 text-yellow-400' 
+                              : 'bg-slate-900 border-slate-800 text-yellow-400'
+                          }`}
                           value={formData.sellPrice}
                           onChange={(e) => setFormData({...formData, sellPrice: Number(e.target.value)})}
                         />
-                        <span className="absolute left-5 top-1/2 -translate-y-1/2 font-bold text-slate-600">Rp</span>
+                        <span className={`absolute left-5 top-1/2 -translate-y-1/2 font-bold ${isManualPrice ? 'text-yellow-500' : 'text-slate-600'}`}>Rp</span>
                       </div>
                     </div>
                     <div className="space-y-2">
@@ -485,16 +579,22 @@ export default function AdminProdukPage() {
 
                 <DialogFooter className="pt-6 gap-4 border-t border-slate-800/50 flex-col sm:flex-row">
                   <div className="flex-1">
-                    {skuValidation.status !== 'valid' && (
+                    {!editMode && skuValidation.status !== 'valid' && (
                       <p className="text-[10px] text-red-400 bg-red-500/10 px-3 py-2 rounded-lg inline-flex items-center gap-2">
                         <XCircle size={12} />
                         Validasi SKU diperlukan sebelum menyimpan
                       </p>
                     )}
-                    {skuValidation.status === 'valid' && (
+                    {!editMode && skuValidation.status === 'valid' && (
                       <p className="text-[10px] text-green-400 bg-green-500/10 px-3 py-2 rounded-lg inline-flex items-center gap-2">
                         <CheckCircle size={12} />
                         SKU valid - siap disimpan
+                      </p>
+                    )}
+                    {editMode && isManualPrice && (
+                      <p className="text-[10px] text-yellow-400 bg-yellow-500/10 px-3 py-2 rounded-lg inline-flex items-center gap-2">
+                        <CheckCircle size={12} />
+                        Gembok aktif - harga tidak akan berubah saat markup kategori diubah
                       </p>
                     )}
                   </div>
@@ -502,8 +602,13 @@ export default function AdminProdukPage() {
                     <button type="button" onClick={() => setOpen(false)} className="bg-slate-800 hover:bg-slate-700 text-white px-8 py-4 rounded-2xl font-bold text-xs uppercase tracking-widest transition-all">
                       Batal
                     </button>
-                    <button type="submit" disabled={loading || skuValidation.status !== 'valid'} className="bg-yellow-500 hover:bg-yellow-400 disabled:bg-slate-700 disabled:text-slate-500 text-black px-12 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 shadow-xl shadow-yellow-500/30 active:scale-95 transition-all">
-                      {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save size={20} />} Simpan Produk
+                    <button 
+                      type="submit" 
+                      disabled={loading || (!editMode && skuValidation.status !== 'valid')} 
+                      className="bg-yellow-500 hover:bg-yellow-400 disabled:bg-slate-700 disabled:text-slate-500 text-black px-12 py-4 rounded-2xl font-black text-xs uppercase tracking-widest flex items-center gap-3 shadow-xl shadow-yellow-500/30 active:scale-95 transition-all"
+                    >
+                      {loading ? <Loader2 className="w-5 h-5 animate-spin" /> : <Save size={20} />} 
+                      {editMode ? "Update Produk" : "Simpan Produk"}
                     </button>
                   </div>
                 </DialogFooter>
@@ -682,12 +787,22 @@ export default function AdminProdukPage() {
                         </span>
                       </td>
                       <td className="px-4 py-4 text-right">
-                        <button 
-                          onClick={() => handleDelete(product.id)}
-                          className="p-2 text-slate-500 hover:text-red-500 transition-colors"
-                        >
-                          <Trash2 size={16} />
-                        </button>
+                        <div className="flex items-center justify-end gap-1">
+                          <button 
+                            onClick={() => handleOpenEdit(product)}
+                            className="p-2 text-slate-500 hover:text-yellow-500 transition-colors"
+                            title="Edit Produk"
+                          >
+                            <Edit size={16} />
+                          </button>
+                          <button 
+                            onClick={() => handleDelete(product.id)}
+                            className="p-2 text-slate-500 hover:text-red-500 transition-colors"
+                            title="Hapus Produk"
+                          >
+                            <Trash2 size={16} />
+                          </button>
+                        </div>
                       </td>
                     </tr>
                   ))

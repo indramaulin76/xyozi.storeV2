@@ -312,7 +312,8 @@ export async function createProduct(data: {
   basicPrice: number,
   sellPrice: number,
   maxPrice: number,
-  status?: string
+  status?: string,
+  isManualPrice?: boolean
 }) {
   try {
     const product = await prisma.product.create({
@@ -324,6 +325,7 @@ export async function createProduct(data: {
         sellPrice: data.sellPrice,
         maxPrice: data.maxPrice,
         status: data.status || "active",
+        isManualPrice: data.isManualPrice || false,
       }
     })
     revalidatePath("/admin/produk")
@@ -331,6 +333,35 @@ export async function createProduct(data: {
   } catch (error) {
     console.error("Error creating product:", error)
     return { success: false, error: "Gagal menambahkan produk. Pastikan SKU unik." }
+  }
+}
+
+export async function updateProduct(id: string, data: {
+  categoryId: string,
+  name: string,
+  sellPrice: number,
+  maxPrice: number,
+  status?: string,
+  isManualPrice?: boolean
+}) {
+  try {
+    const product = await prisma.product.update({
+      where: { id },
+      data: {
+        categoryId: data.categoryId,
+        name: data.name,
+        sellPrice: data.sellPrice,
+        maxPrice: data.maxPrice,
+        status: data.status || "active",
+        isManualPrice: data.isManualPrice || false,
+      }
+    })
+    revalidatePath("/admin/produk")
+    revalidatePath("/")
+    return { success: true, data: product }
+  } catch (error) {
+    console.error("Error updating product:", error)
+    return { success: false, error: "Gagal memperbarui produk" }
   }
 }
 
