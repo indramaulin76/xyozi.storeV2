@@ -83,20 +83,9 @@ export default function Footer() {
           </div>
         </div>
 
-        {/* Payment Methods Placeholder */}
-        <div className="mt-16 border-t border-slate-800 pt-8">
-          <p className="mb-6 text-center text-sm font-medium text-slate-500 uppercase tracking-widest">Metode Pembayaran</p>
-          <div className="flex flex-wrap justify-center gap-6 grayscale opacity-60">
-            {['QRIS', 'DANA', 'GOPAY', 'SHOPEEPAY', 'LINKAJA', 'OVO', 'BCA', 'BNI', 'MANDIRI'].map((item) => (
-              <span key={item} className="text-xs font-bold text-white border border-slate-700 px-2 py-1 rounded">
-                {item}
-              </span>
-            ))}
-          </div>
-          <p className="mt-12 text-center text-xs text-slate-600">
-            {copyright} Built with Next.js 15.
+        <p className="mt-12 text-center text-xs text-slate-600">
+            {copyright}
           </p>
-        </div>
       </div>
     </footer>
   );

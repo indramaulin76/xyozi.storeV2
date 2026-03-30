@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import { Search, ShoppingBag, Calculator, LifeBuoy, History, Menu, X } from 'lucide-react';
+import { Search, ShoppingBag, LifeBuoy, History, Menu, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { useState, useEffect } from 'react';
 import { getWebsiteSettings } from '@/lib/actions/settings';
@@ -62,10 +62,6 @@ export default function Navbar() {
             <ShoppingBag className="h-4 w-4 text-yellow-500" />
             Produk
           </Link>
-          <Link href="/kalkulator" className="flex items-center gap-1.5 hover:text-white transition-colors">
-            <Calculator className="h-4 w-4 text-yellow-500" />
-            Kalkulator
-          </Link>
           <Link href="/bantuan" className="flex items-center gap-1.5 hover:text-white transition-colors">
             <LifeBuoy className="h-4 w-4 text-yellow-500" />
             Bantuan
@@ -99,10 +95,6 @@ export default function Navbar() {
             <Link href="/produk" className="flex items-center gap-3 py-2 text-slate-300 font-medium" onClick={() => setIsMenuOpen(false)}>
               <ShoppingBag className="h-5 w-5 text-yellow-500" />
               Produk
-            </Link>
-            <Link href="/kalkulator" className="flex items-center gap-3 py-2 text-slate-300 font-medium" onClick={() => setIsMenuOpen(false)}>
-              <Calculator className="h-5 w-5 text-yellow-500" />
-              Kalkulator
             </Link>
             <Link href="/bantuan" className="flex items-center gap-3 py-2 text-slate-300 font-medium" onClick={() => setIsMenuOpen(false)}>
               <LifeBuoy className="h-5 w-5 text-yellow-500" />

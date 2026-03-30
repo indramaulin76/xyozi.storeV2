@@ -70,7 +70,7 @@ export function clearDigiflazzCache() {
 
 async function fetchPriceList(): Promise<DigiflazzProduct[]> {
   const now = Date.now();
-  
+
   // Return cache if still valid
   if (cachedProducts && (now - cacheTime) < CACHE_DURATION) {
     console.log('[Digiflazz] Returning cached products:', cachedProducts.length);
@@ -123,12 +123,12 @@ async function fetchPriceList(): Promise<DigiflazzProduct[]> {
     // Update cache
     cachedProducts = resJson.data;
     cacheTime = Date.now();
-    
+
     return resJson.data;
   };
 
   isFetching = fetchAndCache();
-  
+
   try {
     return await isFetching;
   } finally {
@@ -149,12 +149,12 @@ export async function checkDigiflazzProduct(skuCode: string): Promise<{ exists: 
   try {
     const products = await fetchPriceList();
     const skuLower = skuCode.toLowerCase();
-    
+
     console.log('[Digiflazz] Checking SKU:', skuCode, '-> lowercase:', skuLower);
     console.log('[Digiflazz] Total products:', products.length);
-    
+
     const product = products.find(p => p.buyer_sku_code.toLowerCase() === skuLower);
-    
+
     if (product) {
       console.log('[Digiflazz] Found product:', product.product_name, 'SKU:', product.buyer_sku_code);
       return { exists: true, product };
@@ -281,7 +281,7 @@ export async function processTopUpAfterPayment(orderId: string): Promise<void> {
     if (status === 'Sukses') {
       await prisma.order.update({
         where: { id: orderId },
-        data: { 
+        data: {
           digiflazzStatus: 'SUCCESS',
           serialNumber: sn,
           digiflazzMessage: message,
@@ -294,7 +294,7 @@ export async function processTopUpAfterPayment(orderId: string): Promise<void> {
       // Status final akan datang via webhook Digiflazz
       await prisma.order.update({
         where: { id: orderId },
-        data: { 
+        data: {
           digiflazzStatus: 'PROCESSING',
           digiflazzMessage: message,
         },
@@ -305,7 +305,7 @@ export async function processTopUpAfterPayment(orderId: string): Promise<void> {
       // Gagal
       await prisma.order.update({
         where: { id: orderId },
-        data: { 
+        data: {
           digiflazzStatus: 'FAILED',
           digiflazzMessage: message,
         },
@@ -318,7 +318,7 @@ export async function processTopUpAfterPayment(orderId: string): Promise<void> {
 
     await prisma.order.update({
       where: { id: orderId },
-      data: { 
+      data: {
         digiflazzStatus: 'FAILED',
         digiflazzMessage: error instanceof Error ? error.message : 'Unknown error',
       },

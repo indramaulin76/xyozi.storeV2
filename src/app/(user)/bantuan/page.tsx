@@ -41,7 +41,6 @@ export default function BantuanPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
           <ContactCard icon={<MessageCircle className="w-6 h-6 text-green-500" />} title="WhatsApp" value="+62 812 3456 7890" link="https://wa.me/6281234567890" />
           <ContactCard icon={<Mail className="w-6 h-6 text-red-500" />} title="Email" value="support@xyozistore.com" link="mailto:support@xyozistore.com" />
-          <ContactCard icon={<Phone className="w-6 h-6 text-blue-500" />} title="Hotline" value="(021) 1234 5678" link="#" />
         </div>
 
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl">
