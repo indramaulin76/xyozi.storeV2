@@ -319,21 +319,6 @@ export default function OrderForm({ category }: OrderFormProps) {
                 </p>
               </div>
             </div>
-            
-            <div className="bg-yellow-500/5 border border-yellow-500/20 rounded-xl p-4 flex items-start gap-3">
-              <Info className="w-5 h-5 text-yellow-500 shrink-0 mt-0.5" />
-              <p className="text-sm text-slate-300 leading-relaxed">
-                Pastikan{" "}
-                <span className="text-yellow-500 font-bold">{field1Label}</span>
-                {hasField2 && (
-                  <>
-                    {" dan "}
-                    <span className="text-yellow-500 font-bold">{field2Label}</span>
-                  </>
-                )}{" "}
-                sudah benar. Kesalahan input bukan tanggung jawab kami.
-              </p>
-            </div>
           </div>
         </div>
 
