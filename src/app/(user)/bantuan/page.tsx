@@ -1,7 +1,16 @@
-import React from "react";
-import { LifeBuoy, Mail, MessageCircle, Phone } from "lucide-react";
+"use client";
+
+import React, { useState, useEffect } from "react";
+import { LifeBuoy, Mail, MessageCircle } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion";
+import { getWebsiteSettings } from "@/lib/actions/settings";
+import { Loader2 } from "lucide-react";
+
+interface WebsiteSettings {
+  contactWhatsApp: string;
+  contactEmail: string;
+}
 
 const FAQS = [
   {
@@ -23,6 +32,38 @@ const FAQS = [
 ];
 
 export default function BantuanPage() {
+  const [loading, setLoading] = useState(true);
+  const [settings, setSettings] = useState<WebsiteSettings>({
+    contactWhatsApp: "",
+    contactEmail: ""
+  });
+
+  useEffect(() => {
+    loadSettings();
+  }, []);
+
+  const loadSettings = async () => {
+    try {
+      const data = await getWebsiteSettings();
+      setSettings({
+        contactWhatsApp: data.contactWhatsApp || "",
+        contactEmail: data.contactEmail || ""
+      });
+    } catch (error) {
+      console.error("Failed to load settings:", error);
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  if (loading) {
+    return (
+      <div className="min-h-screen bg-slate-950 pb-20 pt-8 flex items-center justify-center">
+        <Loader2 className="w-8 h-8 animate-spin text-yellow-500" />
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen bg-slate-950 pb-20 pt-8">
       <div className="container mx-auto px-4 max-w-4xl">
@@ -38,10 +79,26 @@ export default function BantuanPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-12">
-          <ContactCard icon={<MessageCircle className="w-6 h-6 text-green-500" />} title="WhatsApp" value="+62 812 3456 7890" link="https://wa.me/6281234567890" />
-          <ContactCard icon={<Mail className="w-6 h-6 text-red-500" />} title="Email" value="support@xyozistore.com" link="mailto:support@xyozistore.com" />
-        </div>
+        {(settings.contactWhatsApp || settings.contactEmail) && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 max-w-md mx-auto gap-6 mb-12">
+            {settings.contactWhatsApp && (
+              <ContactCard 
+                icon={<MessageCircle className="w-6 h-6 text-green-500" />} 
+                title="WhatsApp" 
+                value={settings.contactWhatsApp} 
+                link={`https://wa.me/${settings.contactWhatsApp.replace(/[^0-9]/g, '')}`} 
+              />
+            )}
+            {settings.contactEmail && (
+              <ContactCard 
+                icon={<Mail className="w-6 h-6 text-red-500" />} 
+                title="Email" 
+                value={settings.contactEmail} 
+                link={`mailto:${settings.contactEmail}`} 
+              />
+            )}
+          </div>
+        )}
 
         <div className="bg-slate-900 border border-slate-800 rounded-3xl p-6 md:p-8 shadow-2xl">
           <h2 className="text-xl font-bold text-white mb-6 uppercase">Tanya Jawab (FAQ)</h2>
