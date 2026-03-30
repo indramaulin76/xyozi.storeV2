@@ -39,6 +39,7 @@ interface Category {
   menuSection?: string;
   field1Label?: string;
   field2Label?: string | null;
+  description?: string | null;
   products: Product[];
 }
 
@@ -280,6 +281,23 @@ export default function OrderForm({ category }: OrderFormProps) {
                     onChange={(e) => setZoneId(e.target.value)}
                     disabled={loading}
                   />
+                </div>
+              )}
+
+              {/* Category Description / Order Guide */}
+              {category.description && (
+                <div className="bg-blue-500/10 border border-blue-500/30 rounded-xl p-4">
+                  <div className="flex items-start gap-3">
+                    <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
+                    <div>
+                      <p className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-1">
+                        Petunjuk Order
+                      </p>
+                      <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">
+                        {category.description}
+                      </p>
+                    </div>
+                  </div>
                 </div>
               )}
 
