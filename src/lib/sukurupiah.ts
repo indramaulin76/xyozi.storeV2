@@ -119,7 +119,7 @@ export async function createPaymentInvoice(params: CreateInvoiceParams): Promise
     expired: expired.toString(),
     callback_url: callbackUrl,
     return_url: returnUrl,
-    merchant_fee: '2',
+    merchant_fee: '1',
     signature,
   });
 
