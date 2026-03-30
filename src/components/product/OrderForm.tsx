@@ -39,6 +39,7 @@ interface Category {
   menuSection?: string;
   field1Label?: string;
   field2Label?: string | null;
+  field2Required?: boolean;
   description?: string | null;
   products: Product[];
 }
@@ -167,6 +168,11 @@ export default function OrderForm({ category }: OrderFormProps) {
       return;
     }
 
+    if (field2Required && hasField2 && !zoneId) {
+      alert(`Harap masukkan ${field2Label}!`);
+      return;
+    }
+
     if (!customerPhone) {
       alert("Harap masukkan nomor WhatsApp untuk notifikasi pesanan!");
       return;
@@ -204,6 +210,7 @@ export default function OrderForm({ category }: OrderFormProps) {
   // Dynamic labels from category
   const field1Label = category.field1Label || "User ID";
   const field2Label = category.field2Label || null;
+  const field2Required = category.field2Required || false;
   const hasField2 = !!field2Label && field2Label.trim() !== "";
 
   return (
@@ -272,14 +279,15 @@ export default function OrderForm({ category }: OrderFormProps) {
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
                     <Server className="w-4 h-4" />
-                    {field2Label} (Opsional)
+                    {field2Label} {field2Required ? "(Wajib)" : "(Opsional)"}
                   </label>
                   <Input 
-                    placeholder="Contoh: 1234" 
+                    placeholder={field2Required ? "Contoh: 1234" : "Contoh: 1234 (opsional)"}
                     className="bg-slate-900 border-slate-700 h-12 rounded-xl text-white font-mono focus:ring-yellow-500 focus:border-yellow-500" 
                     value={zoneId}
                     onChange={(e) => setZoneId(e.target.value)}
                     disabled={loading}
+                    required={field2Required}
                   />
                 </div>
               )}

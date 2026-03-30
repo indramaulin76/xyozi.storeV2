@@ -30,7 +30,9 @@ model Category {
   menuSection   String    @default("topup") // topup, voucher, pulsa, token, data
   field1Label   String    @default("User ID") // Label untuk input utama (contoh: "User ID", "Riot ID", "Nomor HP")
   field2Label   String?   // Label untuk input opsional (contoh: "Zone ID", "Tagline"). Jika null, tidak tampilkan input kedua.
+  field2Required Boolean  @default(false) // Apakah field2 wajib diisi (untuk voucher)
   digiflazzBrand String?  // Brand name persis dari Digiflazz (e.g., "Mobile Legends", "Free Fire")
+  digiflazzCategory String? // Kategori dari Digiflazz: "Pulsa", "Data", "Game", "Voucher", "PLN", "E-Money", "PPOB"
   products      Product[]
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt

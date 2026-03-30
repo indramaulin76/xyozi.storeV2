@@ -48,7 +48,7 @@ export async function getCategoryBySlug(slug: string) {
   }
 }
 
-export async function createCategory(formData: { name: string, slug: string, logoUrl?: string, bannerUrl?: string, markupPercent?: number, description?: string, menuSection?: string, field1Label?: string, field2Label?: string | null, digiflazzBrand?: string }) {
+export async function createCategory(formData: { name: string, slug: string, logoUrl?: string, bannerUrl?: string, markupPercent?: number, description?: string, menuSection?: string, field1Label?: string, field2Label?: string | null, field2Required?: boolean, digiflazzBrand?: string, digiflazzCategory?: string }) {
   try {
     const category = await prisma.category.create({
       data: {
@@ -61,7 +61,9 @@ export async function createCategory(formData: { name: string, slug: string, log
         menuSection: formData.menuSection || "topup",
         field1Label: formData.field1Label || "User ID",
         field2Label: formData.field2Label || null,
+        field2Required: formData.field2Required || false,
         digiflazzBrand: formData.digiflazzBrand || null,
+        digiflazzCategory: formData.digiflazzCategory || null,
       }
     })
     revalidatePath("/admin/kategori")
@@ -83,7 +85,9 @@ export async function updateCategory(id: string, formData: {
   menuSection?: string,
   field1Label?: string,
   field2Label?: string | null,
-  digiflazzBrand?: string
+  field2Required?: boolean,
+  digiflazzBrand?: string,
+  digiflazzCategory?: string
 }) {
   try {
     const oldCategory = await prisma.category.findUnique({
@@ -103,7 +107,9 @@ export async function updateCategory(id: string, formData: {
         menuSection: formData.menuSection || "topup",
         field1Label: formData.field1Label || "User ID",
         field2Label: formData.field2Label || null,
+        field2Required: formData.field2Required || false,
         digiflazzBrand: formData.digiflazzBrand || null,
+        digiflazzCategory: formData.digiflazzCategory || null,
       }
     });
 

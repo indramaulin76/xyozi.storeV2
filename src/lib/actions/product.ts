@@ -147,24 +147,43 @@ export async function deleteProductImage(productId: string) {
   }
 }
 
-function resolveCategoryForItemBrand(categories: Category[], itemBrand: string) {
+function resolveCategoryForItemBrand(categories: Category[], itemBrand: string, itemCategory: string) {
   const nb = normalizeBrand(itemBrand)
+  const nc = normalizeCategory(itemCategory)
   if (!nb) return undefined
 
   for (const c of categories) {
-    if (c.digiflazzBrand && normalizeBrand(c.digiflazzBrand) === nb) {
+    const cBrand = c.digiflazzBrand ? normalizeBrand(c.digiflazzBrand) : null
+    const cCat = c.digiflazzCategory ? normalizeCategory(c.digiflazzCategory) : null
+
+    if (cBrand && cBrand === nb) {
+      if (cCat && nc && cCat === nc) {
+        return c
+      }
+    }
+  }
+
+  for (const c of categories) {
+    const cBrand = c.digiflazzBrand ? normalizeBrand(c.digiflazzBrand) : null
+    const cCat = c.digiflazzCategory ? normalizeCategory(c.digiflazzCategory) : null
+
+    if (cBrand && cBrand === nb && !cCat) {
       return c
     }
   }
 
-  // Cocokkan secara "longgar" juga berdasarkan digiflazzBrand,
-  // supaya variasi seperti "Point Blank" vs "Point-Blank (PB)" tetap bisa masuk.
   for (const c of categories) {
     if (!c.digiflazzBrand) continue
     const db = normalizeBrand(c.digiflazzBrand)
     if (!db) continue
     if (nb.includes(db) || db.includes(nb)) {
-      return c
+      const cCat = c.digiflazzCategory ? normalizeCategory(c.digiflazzCategory) : null
+      if (cCat && nc && cCat === nc) {
+        return c
+      }
+      if (!cCat) {
+        return c
+      }
     }
   }
 
@@ -173,7 +192,13 @@ function resolveCategoryForItemBrand(categories: Category[], itemBrand: string) 
     const nn = normalizeBrand(c.name)
     if (!nn) continue
     if (nb.includes(nn) || nn.includes(nb)) {
-      candidates.push(c)
+      const cCat = c.digiflazzCategory ? normalizeCategory(c.digiflazzCategory) : null
+      if (cCat && nc && cCat === nc) {
+        return c
+      }
+      if (!cCat) {
+        candidates.push(c)
+      }
     }
   }
   if (candidates.length === 0) return undefined
@@ -182,6 +207,11 @@ function resolveCategoryForItemBrand(categories: Category[], itemBrand: string) 
     (a, b) => normalizeBrand(b.name).length - normalizeBrand(a.name).length
   )
   return candidates[0]
+}
+
+function normalizeCategory(str: string | null | undefined): string {
+  if (!str) return ""
+  return str.trim().toLowerCase()
 }
 
 export async function syncDigiflazzProducts() {
@@ -210,7 +240,7 @@ export async function syncDigiflazzProducts() {
     const unmatchedBrands: string[] = []
 
     for (const item of rawProducts) {
-      const category = resolveCategoryForItemBrand(categories, item.brand)
+      const category = resolveCategoryForItemBrand(categories, item.brand, item.category)
       const skuCode = item.buyer_sku_code.toLowerCase()
       const existing = existingBySku.get(skuCode)
       const active = !!(item.buyer_product_status && item.seller_product_status)

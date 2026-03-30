@@ -38,7 +38,9 @@ export default function AdminKategoriPage() {
     menuSection: "topup",
     field1Label: "User ID",
     field2Label: "",
+    field2Required: false,
     digiflazzBrand: "",
+    digiflazzCategory: "",
   });
 
   const fetchData = async () => {
@@ -96,7 +98,9 @@ export default function AdminKategoriPage() {
       menuSection: "topup",
       field1Label: "User ID",
       field2Label: "",
+      field2Required: false,
       digiflazzBrand: "",
+      digiflazzCategory: "",
     });
     setOpen(true);
   };
@@ -114,7 +118,9 @@ export default function AdminKategoriPage() {
       menuSection: category.menuSection || "topup",
       field1Label: category.field1Label || "User ID",
       field2Label: category.field2Label || "",
+      field2Required: category.field2Required || false,
       digiflazzBrand: category.digiflazzBrand || "",
+      digiflazzCategory: category.digiflazzCategory || "",
     });
     setOpen(true);
   };
@@ -241,11 +247,24 @@ export default function AdminKategoriPage() {
                       />
                       <p className="text-[11px] text-slate-500 font-medium">Kosongkan jika hanya butuh 1 input. Contoh: Zone ID, Tagline, Server.</p>
                     </div>
+                    <div className="flex items-center gap-3 p-4 bg-purple-500/5 border border-purple-500/10 rounded-xl">
+                      <input 
+                        type="checkbox" 
+                        id="field2Required"
+                        checked={formData.field2Required}
+                        onChange={(e) => setFormData({...formData, field2Required: e.target.checked})}
+                        className="w-5 h-5 rounded border-slate-700 bg-slate-900 text-purple-500 focus:ring-purple-500"
+                      />
+                      <div className="space-y-0.5">
+                        <Label htmlFor="field2Required" className="text-sm font-bold text-white cursor-pointer">Wajib Diisi</Label>
+                        <p className="text-[11px] text-slate-500 font-medium">Aktifkan jika input kedua wajib diisi (contoh: untuk voucher games tertentu)</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
 
                 {/* Digiflazz Brand Section */}
-                <div className="space-y-4 pt-4">
+                  <div className="space-y-4 pt-4">
                   <h4 className="text-xs font-black uppercase text-yellow-500 tracking-[0.2em] flex items-center gap-2">
                     <Link2 size={14} /> Integrasi Digiflazz
                   </h4>
@@ -261,6 +280,27 @@ export default function AdminKategoriPage() {
                       <p className="text-[11px] text-slate-500 font-medium">
                         Masukkan nama brand persis seperti di API Digiflazz (contoh: MOBILE LEGENDS, TELKOMSEL).
                         Sistem menormalisasi spasi dan huruf besar/kecil; produk akan otomatis masuk ke kategori ini saat sinkronisasi.
+                      </p>
+                    </div>
+                    <div className="space-y-2">
+                      <Label className="text-[10px] font-black uppercase text-slate-500 ml-1">Kategori Digiflazz</Label>
+                      <select 
+                        className="w-full bg-slate-900 border border-slate-800 h-14 rounded-xl text-base font-bold text-slate-200 px-6 focus:ring-2 focus:ring-yellow-500 focus:border-yellow-500 transition-all appearance-none cursor-pointer"
+                        value={formData.digiflazzCategory}
+                        onChange={(e) => setFormData({...formData, digiflazzCategory: e.target.value})}
+                      >
+                        <option value="">Pilih Kategori (Opsional)</option>
+                        <option value="Pulsa">Pulsa</option>
+                        <option value="Data">Paket Data</option>
+                        <option value="Game">Game (Top-Up)</option>
+                        <option value="Voucher">Voucher Game</option>
+                        <option value="PLN">PLN (Token/Tagihan)</option>
+                        <option value="E-Money">E-Money</option>
+                        <option value="PPOB">PPOB (Tagihan)</option>
+                      </select>
+                      <p className="text-[11px] text-slate-500 font-medium">
+                        Kategori produk dari API Digiflazz. Digunakan untuk mapping otomatis saat sinkronisasi.
+                        Kombinasikan dengan Brand untuk hasil terbaik.
                       </p>
                     </div>
                   </div>
