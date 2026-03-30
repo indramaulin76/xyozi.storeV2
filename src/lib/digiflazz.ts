@@ -204,6 +204,8 @@ interface DigiflazzPurchaseResponse {
 export async function purchaseProduct(params: PurchaseParams): Promise<DigiflazzPurchaseResponse> {
   const { skuCode, customerNo, refId, zoneId } = params;
 
+  const finalCustomerNo = zoneId ? `${customerNo}${zoneId}` : customerNo;
+
   const settings = await getDigiflazzSettings();
 
   if (!settings.username || !settings.apiKey) {
@@ -215,15 +217,11 @@ export async function purchaseProduct(params: PurchaseParams): Promise<Digiflazz
   const requestBody: Record<string, string | boolean> = {
     username: settings.username,
     buyer_sku_code: skuCode.toLowerCase(),
-    customer_no: customerNo,
+    customer_no: finalCustomerNo,
     ref_id: refId,
     sign,
-    testing: settings.testing, // Kirim `false` secara eksplisit
+    testing: settings.testing,
   };
-
-  if (zoneId) {
-    requestBody.zone_id = zoneId;
-  }
 
   console.log('[Digiflazz] Sending purchase request:', JSON.stringify(requestBody, null, 2));
 
