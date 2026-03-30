@@ -394,9 +394,6 @@ export default function OrderForm({ category }: OrderFormProps) {
                       <p className={`text-sm font-bold truncate ${selectedProductId === item.id ? 'text-yellow-500' : 'text-white'}`}>
                         {item.name}
                       </p>
-                      {item.skuCode && (
-                        <p className="text-xs text-slate-500 mt-0.5">{item.skuCode}</p>
-                      )}
                     </div>
                     
                     {/* Price & Check */}
