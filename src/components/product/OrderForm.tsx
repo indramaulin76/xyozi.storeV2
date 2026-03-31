@@ -399,7 +399,7 @@ export default function OrderForm({ category }: OrderFormProps) {
                     
                     {/* Product Info */}
                     <div className="flex-1 min-w-0">
-                      <p className={`text-sm font-bold truncate ${selectedProductId === item.id ? 'text-yellow-500' : 'text-white'}`}>
+                      <p className={`text-sm font-bold line-clamp-2 ${selectedProductId === item.id ? 'text-yellow-500' : 'text-white'}`}>
                         {item.name}
                       </p>
                     </div>
@@ -460,9 +460,9 @@ export default function OrderForm({ category }: OrderFormProps) {
               
               {/* Game Info */}
               <div className="flex items-center gap-3 pb-4 border-b border-slate-700">
-                <div className="w-12 h-12 rounded-xl bg-slate-700 flex items-center justify-center overflow-hidden">
+                <div className="w-12 h-12 rounded-xl bg-slate-700 flex items-center justify-center overflow-hidden shrink-0">
                   {category.logoUrl ? (
-                    <img src={category.logoUrl} alt={category.name} className="w-full h-full object-contain p-1" />
+                    <img src={category.logoUrl} alt={category.name} className="w-full h-full object-cover" />
                   ) : (
                     <span className="text-lg font-black text-yellow-500">{category.name.substring(0, 2).toUpperCase()}</span>
                   )}
@@ -487,7 +487,7 @@ export default function OrderForm({ category }: OrderFormProps) {
                 )}
                 <div className="flex justify-between items-center">
                   <span className="text-xs text-slate-400 uppercase tracking-wider">Item</span>
-                  <span className="font-bold text-white text-right max-w-[150px] truncate">
+                  <span className="font-bold text-white text-left line-clamp-2 max-w-[180px]">
                     {selectedProduct?.name || '-'}
                   </span>
                 </div>

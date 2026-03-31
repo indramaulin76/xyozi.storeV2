@@ -188,7 +188,7 @@ function GameCard({ game, index }: { game: Category, index?: number }) {
             </div>
           )}
         </div>
-        <div className="mt-3 text-center">
+        <div className="mt-3 text-center w-full">
           <h4 className="text-[10px] md:text-sm font-bold text-slate-100 line-clamp-2 leading-tight group-hover:text-yellow-500 transition-colors uppercase">
             {game.name}
           </h4>
