@@ -37,7 +37,9 @@ export default function AdminKategoriPage() {
     markupPercent: 10,
     menuSection: "topup",
     field1Label: "User ID",
+    field1Placeholder: "",
     field2Label: "",
+    field2Placeholder: "",
     field2Required: false,
     digiflazzBrand: "",
     digiflazzCategory: "",
@@ -97,7 +99,9 @@ export default function AdminKategoriPage() {
       markupPercent: 10,
       menuSection: "topup",
       field1Label: "User ID",
+      field1Placeholder: "",
       field2Label: "",
+      field2Placeholder: "",
       field2Required: false,
       digiflazzBrand: "",
       digiflazzCategory: "",
@@ -117,7 +121,9 @@ export default function AdminKategoriPage() {
       markupPercent: category.markupPercent || 10,
       menuSection: category.menuSection || "topup",
       field1Label: category.field1Label || "User ID",
+      field1Placeholder: category.field1Placeholder || "",
       field2Label: category.field2Label || "",
+      field2Placeholder: category.field2Placeholder || "",
       field2Required: category.field2Required || false,
       digiflazzBrand: category.digiflazzBrand || "",
       digiflazzCategory: category.digiflazzCategory || "",
@@ -224,28 +230,48 @@ export default function AdminKategoriPage() {
                 {/* Form Input Labels Section */}
                 <div className="space-y-4 pt-4">
                   <h4 className="text-xs font-black uppercase text-purple-500 tracking-[0.2em] flex items-center gap-2">
-                    <FormInput size={14} /> Label Form Input
+                    <FormInput size={14} /> Label & Placeholder Form Input
                   </h4>
                   <div className="bg-purple-500/5 border border-purple-500/10 p-6 rounded-[30px] space-y-4">
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase text-slate-500 ml-1">Label Input Utama (Wajib)</Label>
-                      <Input 
-                        placeholder="Contoh: User ID, Riot ID, UID, Nomor HP" 
-                        className="bg-slate-900 border-slate-800 h-14 rounded-xl text-base font-bold px-6 focus:ring-purple-500"
-                        value={formData.field1Label}
-                        onChange={(e) => setFormData({...formData, field1Label: e.target.value})}
-                      />
-                      <p className="text-[11px] text-slate-500 font-medium">Label untuk input utama (User ID, Riot ID, Nomor HP, dll).</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-slate-500 ml-1">Label Input Utama</Label>
+                        <Input 
+                          placeholder="Contoh: User ID, Riot ID, UID, Nomor HP" 
+                          className="bg-slate-900 border-slate-800 h-14 rounded-xl text-base font-bold px-6 focus:ring-purple-500"
+                          value={formData.field1Label}
+                          onChange={(e) => setFormData({...formData, field1Label: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-slate-500 ml-1">Placeholder Input Utama</Label>
+                        <Input 
+                          placeholder="Contoh: 1234567, os_asia" 
+                          className="bg-slate-900 border-slate-800 h-14 rounded-xl text-base font-bold px-6 focus:ring-purple-500"
+                          value={formData.field1Placeholder}
+                          onChange={(e) => setFormData({...formData, field1Placeholder: e.target.value})}
+                        />
+                      </div>
                     </div>
-                    <div className="space-y-2">
-                      <Label className="text-[10px] font-black uppercase text-slate-500 ml-1">Label Input Kedua (Opsional)</Label>
-                      <Input 
-                        placeholder="Contoh: Zone ID, Tagline, Server (kosongkan jika tidak perlu)" 
-                        className="bg-slate-900 border-slate-800 h-14 rounded-xl text-base font-bold px-6 focus:ring-purple-500"
-                        value={formData.field2Label}
-                        onChange={(e) => setFormData({...formData, field2Label: e.target.value})}
-                      />
-                      <p className="text-[11px] text-slate-500 font-medium">Kosongkan jika hanya butuh 1 input. Contoh: Zone ID, Tagline, Server.</p>
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-slate-500 ml-1">Label Input Kedua</Label>
+                        <Input 
+                          placeholder="Contoh: Zone ID, Server (kosongkan jika tidak perlu)" 
+                          className="bg-slate-900 border-slate-800 h-14 rounded-xl text-base font-bold px-6 focus:ring-purple-500"
+                          value={formData.field2Label}
+                          onChange={(e) => setFormData({...formData, field2Label: e.target.value})}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label className="text-[10px] font-black uppercase text-slate-500 ml-1">Placeholder Input Kedua</Label>
+                        <Input 
+                          placeholder="Contoh: os_asia untuk Asia" 
+                          className="bg-slate-900 border-slate-800 h-14 rounded-xl text-base font-bold px-6 focus:ring-purple-500"
+                          value={formData.field2Placeholder}
+                          onChange={(e) => setFormData({...formData, field2Placeholder: e.target.value})}
+                        />
+                      </div>
                     </div>
                     <div className="flex items-center gap-3 p-4 bg-purple-500/5 border border-purple-500/10 rounded-xl">
                       <input 

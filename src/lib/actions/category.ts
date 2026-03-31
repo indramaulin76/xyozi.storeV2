@@ -48,7 +48,7 @@ export async function getCategoryBySlug(slug: string) {
   }
 }
 
-export async function createCategory(formData: { name: string, slug: string, logoUrl?: string, bannerUrl?: string, markupPercent?: number, description?: string, menuSection?: string, field1Label?: string, field2Label?: string | null, field2Required?: boolean, digiflazzBrand?: string, digiflazzCategory?: string }) {
+export async function createCategory(formData: { name: string, slug: string, logoUrl?: string, bannerUrl?: string, markupPercent?: number, description?: string, menuSection?: string, field1Label?: string, field1Placeholder?: string, field2Label?: string | null, field2Placeholder?: string, field2Required?: boolean, digiflazzBrand?: string, digiflazzCategory?: string }) {
   try {
     const category = await prisma.category.create({
       data: {
@@ -60,7 +60,9 @@ export async function createCategory(formData: { name: string, slug: string, log
         description: formData.description,
         menuSection: formData.menuSection || "topup",
         field1Label: formData.field1Label || "User ID",
+        field1Placeholder: formData.field1Placeholder || null,
         field2Label: formData.field2Label || null,
+        field2Placeholder: formData.field2Placeholder || null,
         field2Required: formData.field2Required || false,
         digiflazzBrand: formData.digiflazzBrand || null,
         digiflazzCategory: formData.digiflazzCategory || null,
@@ -84,7 +86,9 @@ export async function updateCategory(id: string, formData: {
   description?: string,
   menuSection?: string,
   field1Label?: string,
+  field1Placeholder?: string,
   field2Label?: string | null,
+  field2Placeholder?: string,
   field2Required?: boolean,
   digiflazzBrand?: string,
   digiflazzCategory?: string
@@ -106,7 +110,9 @@ export async function updateCategory(id: string, formData: {
         description: formData.description,
         menuSection: formData.menuSection || "topup",
         field1Label: formData.field1Label || "User ID",
+        field1Placeholder: formData.field1Placeholder || null,
         field2Label: formData.field2Label || null,
+        field2Placeholder: formData.field2Placeholder || null,
         field2Required: formData.field2Required || false,
         digiflazzBrand: formData.digiflazzBrand || null,
         digiflazzCategory: formData.digiflazzCategory || null,

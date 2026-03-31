@@ -36,9 +36,12 @@ interface Category {
   id: string;
   name: string;
   slug: string;
+  logoUrl?: string | null;
   menuSection?: string;
   field1Label?: string;
+  field1Placeholder?: string | null;
   field2Label?: string | null;
+  field2Placeholder?: string | null;
   field2Required?: boolean;
   description?: string | null;
   products: Product[];
@@ -209,7 +212,9 @@ export default function OrderForm({ category }: OrderFormProps) {
 
   // Dynamic labels from category
   const field1Label = category.field1Label || "User ID";
+  const field1Placeholder = category.field1Placeholder || "";
   const field2Label = category.field2Label || null;
+  const field2Placeholder = category.field2Placeholder || "";
   const field2Required = category.field2Required || false;
   const hasField2 = !!field2Label && field2Label.trim() !== "";
 
@@ -266,7 +271,7 @@ export default function OrderForm({ category }: OrderFormProps) {
                   {field1Label} *
                 </label>
                 <Input 
-                  placeholder={`Contoh: 12345678`}
+                  placeholder={field1Placeholder || `Contoh: 12345678`}
                   className="bg-slate-900 border-slate-700 h-12 rounded-xl text-white font-mono focus:ring-yellow-500 focus:border-yellow-500" 
                   value={userGameId}
                   onChange={(e) => setUserGameId(e.target.value)}
@@ -282,7 +287,7 @@ export default function OrderForm({ category }: OrderFormProps) {
                     {field2Label} {field2Required ? "(Wajib)" : "(Opsional)"}
                   </label>
                   <Input 
-                    placeholder={field2Required ? "Contoh: 1234" : "Contoh: 1234 (opsional)"}
+                    placeholder={field2Placeholder || (field2Required ? "Contoh: 1234" : "Contoh: 1234 (opsional)")}
                     className="bg-slate-900 border-slate-700 h-12 rounded-xl text-white font-mono focus:ring-yellow-500 focus:border-yellow-500" 
                     value={zoneId}
                     onChange={(e) => setZoneId(e.target.value)}
@@ -294,18 +299,10 @@ export default function OrderForm({ category }: OrderFormProps) {
 
               {/* Category Description / Order Guide */}
               {category.description && (
-                <div className={`bg-blue-500/10 border border-blue-500/30 rounded-xl p-4 ${hasField2 ? 'md:col-span-2' : ''}`}>
-                  <div className="flex items-start gap-3">
-                    <Info className="w-5 h-5 text-blue-500 shrink-0 mt-0.5" />
-                    <div>
-                      <p className="text-xs font-bold text-blue-400 uppercase tracking-wider mb-1">
-                        Petunjuk Order
-                      </p>
-                      <p className="text-sm text-slate-300 leading-relaxed whitespace-pre-wrap">
-                        {category.description}
-                      </p>
-                    </div>
-                  </div>
+                <div className={`p-0 ${hasField2 ? 'md:col-span-2' : ''}`}>
+                  <p className="text-sm text-slate-400 leading-relaxed whitespace-pre-wrap">
+                    {category.description}
+                  </p>
                 </div>
               )}
 
@@ -464,7 +461,11 @@ export default function OrderForm({ category }: OrderFormProps) {
               {/* Game Info */}
               <div className="flex items-center gap-3 pb-4 border-b border-slate-700">
                 <div className="w-12 h-12 rounded-xl bg-slate-700 flex items-center justify-center overflow-hidden">
-                  <span className="text-lg font-black text-yellow-500">{category.name.substring(0, 2).toUpperCase()}</span>
+                  {category.logoUrl ? (
+                    <img src={category.logoUrl} alt={category.name} className="w-full h-full object-contain p-1" />
+                  ) : (
+                    <span className="text-lg font-black text-yellow-500">{category.name.substring(0, 2).toUpperCase()}</span>
+                  )}
                 </div>
                 <div>
                   <p className="font-bold text-white">{category.name}</p>
