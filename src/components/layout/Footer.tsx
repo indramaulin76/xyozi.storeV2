@@ -59,7 +59,6 @@ export default function Footer() {
               <li><Link href="/produk" className="hover:text-yellow-500">Semua Game</Link></li>
               <li><Link href="/produk?cat=voucher" className="hover:text-yellow-500">Voucher Game</Link></li>
               <li><Link href="/produk?cat=pulsa" className="hover:text-yellow-500">Pulsa & Data</Link></li>
-              <li><Link href="/daftar-harga" className="hover:text-yellow-500">Daftar Harga</Link></li>
             </ul>
           </div>
 
@@ -67,8 +66,7 @@ export default function Footer() {
           <div className="space-y-4">
             <h4 className="text-lg font-semibold text-white">Bantuan</h4>
             <ul className="space-y-2 text-sm text-slate-400">
-              <li><Link href="/hubungi-kami" className="hover:text-yellow-500">Hubungi Kami</Link></li>
-              <li><Link href="/faq" className="hover:text-yellow-500">Tanya Jawab (FAQ)</Link></li>
+              <li><Link href="/bantuan" className="hover:text-yellow-500">Pusat Bantuan</Link></li>
               <li><Link href="/transaksi" className="hover:text-yellow-500">Cek Pesanan</Link></li>
             </ul>
           </div>
@@ -78,7 +76,6 @@ export default function Footer() {
             <h4 className="text-lg font-semibold text-white">Legalitas</h4>
             <ul className="space-y-2 text-sm text-slate-400">
               <li><Link href="/tos" className="hover:text-yellow-500">Syarat & Ketentuan</Link></li>
-              <li><Link href="/privacy" className="hover:text-yellow-500">Kebijakan Privasi</Link></li>
             </ul>
           </div>
         </div>
